@@ -1,0 +1,48 @@
+:root {
+    --bs-primary: #e30083 !important;
+}
+
+.btn-primary,
+.bg-primary {
+    background-color: #e30083 !important;
+    border-color: #e30083 !important;
+}
+
+/* 🌸 Ubah warna utama sidebar menjadi e30083 */
+.menu-vertical .menu-item.active>.menu-link {
+    background-color: rgba(227, 0, 131, 0.15) !important;
+    /* sedikit transparan */
+    color: #e30083 !important;
+    font-weight: 600;
+}
+
+/* Hover efek lebih lembut */
+.menu-vertical .menu-item:hover>.menu-link {
+    background-color: rgba(227, 0, 131, 0.1) !important;
+    color: #e30083 !important;
+}
+
+/* Warna ikon saat aktif */
+.menu-vertical .menu-item.active .menu-icon,
+.menu-vertical .menu-item:hover .menu-icon {
+    color: #e30083 !important;
+}
+
+/* Default link warna */
+.menu-vertical .menu-link {
+    color: #5c6c75 !important;
+    /* warna teks normal */
+    transition: all 0.3s ease;
+}
+
+/* Active border kiri kecil (opsional, biar elegan) */
+.menu-vertical .menu-item.active>.menu-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background-color: #e30083;
+    border-radius: 0 3px 3px 0;
+}

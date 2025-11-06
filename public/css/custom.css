@@ -1,0 +1,32 @@
+:root {
+    --bs-primary: #e30083;
+    --bs-primary-rgb: 227, 0, 131;
+}
+
+.bg-primary,
+.btn-primary,
+.menu-item.active .menu-link {
+    background-color: #e30083 !important;
+    border-color: #e30083 !important;
+}
+
+.text-primary {
+    color: #e30083 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #b80068 !important;
+    border-color: #b80068 !important;
+}
+
+/* Scrollbar */
+.ps__thumb-y,
+.ps__thumb-x {
+    background-color: #e30083 !important;
+}
+
+.ps__thumb-y:hover,
+.ps__thumb-x:hover {
+    background-color: #b80068 !important;
+}
