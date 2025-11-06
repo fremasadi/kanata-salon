@@ -47,9 +47,9 @@
                 <option value="{{ $layanan->id }}"
                     data-harga="{{ $layanan->harga }}"
                     data-kategori="{{ strtolower($layanan->kategori) }}"
-                    @if(isset($reservasi) && in_array($pegawai->id, $reservasi->pegawai_helper_id))
+                    @if(isset($reservasi) && in_array($layanan->id, $reservasi->layanan_id))
                         selected
-                    @endif
+                    @endif>
                     {{ $layanan->name }} — {{ ucfirst($layanan->kategori) }} — Rp {{ number_format($layanan->harga, 0, ',', '.') }}
                 </option>
             @endforeach
@@ -71,8 +71,6 @@
     </div>
     
 
-
-
     {{-- Pegawai Helper --}}
     <div class="col-md-6" id="helper_section">
         <label class="form-label">Pegawai Helper</label>
@@ -82,7 +80,7 @@
                     data-shift="{{ $pegawai->shift->nama ?? '-' }}"
                     data-mulai="{{ $pegawai->shift->waktu_mulai ?? '-' }}"
                     data-selesai="{{ $pegawai->shift->waktu_selesai ?? '-' }}"
-                    @if(isset($reservasi) && in_array($pegawai->id, json_decode($reservasi->pegawai_helper_id ?? '[]')))
+                    @if(isset($reservasi) && in_array($pegawai->id, $reservasi->pegawai_helper_id))
                         selected
                     @endif>
                     {{ $pegawai->user->name }}
@@ -91,6 +89,7 @@
         </select>
         <small id="info_shift_helper" class="text-muted d-block mt-1"></small>
     </div>
+
 
     {{-- Total Harga --}}
     <div class="col-md-6">
