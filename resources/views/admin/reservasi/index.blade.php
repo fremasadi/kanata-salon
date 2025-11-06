@@ -83,11 +83,11 @@
                                     <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="bx bx-edit"></i>
                                     </a>
-                                    <form action="{{ route('admin.reservasi.destroy', $reservasi->id) }}" method="POST" class="d-inline"
+                                    <!-- <form action="{{ route('admin.reservasi.destroy', $reservasi->id) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('Yakin ingin menghapus reservasi ini?')">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
-                                    </form>
+                                    </form> -->
                                 </td>
                             </tr>
                         @empty
