@@ -47,9 +47,9 @@
                 <option value="{{ $layanan->id }}"
                     data-harga="{{ $layanan->harga }}"
                     data-kategori="{{ strtolower($layanan->kategori) }}"
-                    @if(isset($reservasi) && in_array($layanan->id, json_decode($reservasi->layanan_id ?? '[]')))
+                    @if(isset($reservasi) && in_array($pegawai->id, $reservasi->pegawai_helper_id))
                         selected
-                    @endif>
+                    @endif
                     {{ $layanan->name }} — {{ ucfirst($layanan->kategori) }} — Rp {{ number_format($layanan->harga, 0, ',', '.') }}
                 </option>
             @endforeach
