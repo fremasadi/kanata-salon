@@ -76,8 +76,6 @@
                                 @enderror
                             </div>
 
-                           
-
                             <!-- Catatan -->
                             <div>
                                 <label class="block text-gray-700 font-semibold mb-2">Catatan Tambahan</label>
@@ -97,24 +95,53 @@
                             </svg>
                             Jenis Pembayaran
                         </h2>
-                        <div class="space-y-3">
-                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#EC008C] transition @error('jenis_pembayaran') border-red-500 @enderror">
-                                <input type="radio" name="jenis_pembayaran" value="DP" class="w-5 h-5 text-[#EC008C]" {{ old('jenis_pembayaran', 'DP') == 'DP' ? 'checked' : '' }}>
-                                <div class="ml-4">
-                                    <p class="font-semibold text-gray-800">DP 50%</p>
-                                    <p class="text-sm text-gray-600">Bayar setengah sekarang, sisanya di tempat</p>
-                                    <p class="text-lg font-bold text-[#EC008C] mt-1">Rp {{ number_format($total * 0.5, 0, ',', '.') }}</p>
+                        
+                        @if($dpAvailable)
+                            <!-- Jika total > 50rb, tampilkan pilihan DP dan Lunas -->
+                            <div class="space-y-3">
+                                <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#EC008C] transition @error('jenis_pembayaran') border-red-500 @enderror">
+                                    <input type="radio" name="jenis_pembayaran" value="DP" class="w-5 h-5 text-[#EC008C]" {{ old('jenis_pembayaran', 'DP') == 'DP' ? 'checked' : '' }}>
+                                    <div class="ml-4">
+                                        <p class="font-semibold text-gray-800">DP Rp 50.000</p>
+                                        <p class="text-sm text-gray-600">Bayar DP sekarang, sisanya di tempat</p>
+                                        <p class="text-lg font-bold text-[#EC008C] mt-1">Rp {{ number_format($dpAmount, 0, ',', '.') }}</p>
+                                    </div>
+                                </label>
+                                <!-- <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#EC008C] transition">
+                                    <input type="radio" name="jenis_pembayaran" value="Lunas" class="w-5 h-5 text-[#EC008C]" {{ old('jenis_pembayaran') == 'Lunas' ? 'checked' : '' }}>
+                                    <div class="ml-4">
+                                        <p class="font-semibold text-gray-800">Lunas</p>
+                                        <p class="text-sm text-gray-600">Bayar semua sekarang</p>
+                                        <p class="text-lg font-bold text-[#EC008C] mt-1">Rp {{ number_format($total, 0, ',', '.') }}</p>
+                                    </div>
+                                </label> -->
+                            </div>
+                        @else
+                            <!-- Jika total <= 50rb, hanya tampilkan pelunasan -->
+                            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+                                <div class="flex items-start">
+                                    <svg class="w-6 h-6 text-yellow-600 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="font-semibold text-yellow-800">Pembayaran Harus Lunas</p>
+                                        <p class="text-sm text-yellow-700 mt-1">Total pembelian di bawah atau sama dengan Rp 50.000, sehingga tidak tersedia opsi DP. Anda harus melakukan pelunasan.</p>
+                                    </div>
                                 </div>
-                            </label>
-                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#EC008C] transition">
-                                <input type="radio" name="jenis_pembayaran" value="Lunas" class="w-5 h-5 text-[#EC008C]" {{ old('jenis_pembayaran') == 'Lunas' ? 'checked' : '' }}>
-                                <div class="ml-4">
-                                    <p class="font-semibold text-gray-800">Lunas</p>
-                                    <p class="text-sm text-gray-600">Bayar semua sekarang</p>
-                                    <p class="text-lg font-bold text-[#EC008C] mt-1">Rp {{ number_format($total, 0, ',', '.') }}</p>
+                            </div>
+                            
+                            <div class="p-4 border-2 border-[#EC008C] rounded-lg bg-pink-50">
+                                <div class="flex items-center">
+                                    <input type="radio" name="jenis_pembayaran" value="Lunas" class="w-5 h-5 text-[#EC008C]" checked disabled>
+                                    <div class="ml-4">
+                                        <p class="font-semibold text-gray-800">Lunas (Wajib)</p>
+                                        <p class="text-sm text-gray-600">Bayar semua sekarang</p>
+                                        <p class="text-lg font-bold text-[#EC008C] mt-1">Rp {{ number_format($total, 0, ',', '.') }}</p>
+                                    </div>
                                 </div>
-                            </label>
-                        </div>
+                            </div>
+                        @endif
+                        
                         @error('jenis_pembayaran')
                             <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
                         @enderror

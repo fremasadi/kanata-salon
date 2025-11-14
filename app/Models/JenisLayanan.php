@@ -16,7 +16,6 @@ class JenisLayanan extends Model
         'harga',
         'harga_max',
             'jenis', // tambahkan ini
-
         'durasi_menit',
         'deskripsi',
         'kategori',

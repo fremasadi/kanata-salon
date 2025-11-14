@@ -50,6 +50,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payment/{id}', [PaymentController::class, 'show'])->name('payment.show');
     Route::get('/payment/{id}/check-status', [PaymentController::class, 'checkStatus'])->name('payment.check');
 
+    Route::get('/history', [App\Http\Controllers\Front\HistoryController::class, 'index'])->name('history.index');
+    Route::get('/history/{id}', [App\Http\Controllers\Front\HistoryController::class, 'show'])->name('history.show');
+
 });
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');

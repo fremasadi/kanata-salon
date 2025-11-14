@@ -79,15 +79,16 @@
 
                         <!-- Clear Cart -->
                         <div class="mt-6 pt-4 border-t">
-                            <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Yakin ingin mengosongkan keranjang?')">
+                            <form id="clear-cart-form" action="{{ route('cart.clear') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="text-red-600 hover:text-red-800 font-semibold flex items-center gap-2 transition">
+                                <button type="button" id="clear-cart-btn" class="text-red-600 hover:text-red-800 font-semibold flex items-center gap-2 transition">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
                                     Kosongkan Keranjang
                                 </button>
                             </form>
+
                         </div>
                     </div>
                 </div>
@@ -204,42 +205,72 @@
         });
     }
 
-    function removeFromCart(itemId) {
-        if (!confirm('Yakin ingin menghapus item ini?')) return;
-
-        fetch(`/cart/remove/${itemId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    document.getElementById('clear-cart-btn').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Kosongkan Keranjang?',
+            text: "Semua item akan dihapus",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EC008C',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, kosongkan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('clear-cart-form').submit();
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Remove item from DOM
-                const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
-                itemElement.remove();
-                
-                // Update totals
-                document.getElementById('total-price').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(data.total);
-                document.getElementById('total-items').textContent = data.cart_count;
-                
-                // Update cart count in navbar
-                updateCartCount(data.cart_count);
-                
-                showNotification(data.message, 'success');
-                
-                // Reload if cart is empty
-                if (data.cart_count === 0) {
-                    setTimeout(() => location.reload(), 1000);
-                }
-            }
-        })
-        .catch(error => {
-            showNotification('Terjadi kesalahan', 'error');
         });
-    }
+    });
+
+
+    function removeFromCart(itemId) {
+    Swal.fire({
+        title: 'Yakin ingin menghapus?',
+        text: "Item ini akan dihapus dari keranjang",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#EC008C',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/cart/remove/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hapus elemen item
+                    document.querySelector(`[data-item-id="${itemId}"]`).remove();
+
+                    // Update nilai total
+                    document.getElementById('total-price').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(data.total);
+                    document.getElementById('total-items').textContent = data.cart_count;
+
+                    updateCartCount(data.cart_count);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    if (data.cart_count === 0) {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                }
+            });
+        }
+    });
+}
+
 
     function updateCartCount(count) {
         const badges = document.querySelectorAll('.cart-count, [class*="cart-count"]');

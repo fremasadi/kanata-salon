@@ -19,6 +19,12 @@ return new class extends Migration
             $table->time('jam');
             $table->enum('jenis', ['Online', 'Walk-in'])->default('Walk-in');
             $table->enum('status', ['Menunggu', 'Dikonfirmasi', 'Berjalan', 'Selesai', 'Batal'])->default('Menunggu');
+            $table->enum('status_pembayaran', ['DP', 'Lunas'])
+                ->default('DP')
+                ->after('status');
+            $table->decimal('jumlah_pembayaran', 12, 2)
+                ->default(0)
+                ->after('status_pembayaran');
             $table->decimal('total_harga', 12, 2)->default(0);
             $table->foreignId('pegawai_pj_id')->constrained('pegawais')->onDelete('cascade');
             $table->json('pegawai_helper_id')->nullable(); // bisa kosong
