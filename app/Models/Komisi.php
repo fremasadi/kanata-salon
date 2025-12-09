@@ -1,13 +1,13 @@
-    <?php
+<?php
 
-    namespace App\Models;
+namespace App\Models;
 
-    use Illuminate\Database\Eloquent\Factories\HasFactory;
-    use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-    class Komisi extends Model
-    {
-        use HasFactory;
+class Komisi extends Model
+{
+    use HasFactory;
 
         protected $primaryKey = 'komisi_id';
 
@@ -44,4 +44,4 @@
                 ? round(($this->persentase / 100) * $totalReservasi, 2)
                 : $this->jumlah;
         }
-    }
+}
