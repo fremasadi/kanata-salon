@@ -47,17 +47,17 @@
             </li>
 
             {{-- Transaksi --}}
-            {{-- <li class="menu-header small text-uppercase">
+            <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Transaksi</span>
-            </li> --}}
+            </li>
 
             {{-- Reservasi --}}
-            {{-- <li class="menu-item {{ request()->routeIs('admin.reservasi.*') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('admin.reservasi.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.reservasi.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                     <div>Reservasi</div>
                 </a>
-            </li> --}}
+            </li>
 
             {{-- Keuangan --}}
             {{-- <li class="menu-header small text-uppercase">
@@ -112,12 +112,12 @@
             </li>
 
             {{-- Reservasi Saya --}}
-            {{-- <li class="menu-item {{ request()->routeIs('pegawai.reservasi.index') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('pegawai.reservasi.index') ? 'active' : '' }}">
                 <a href="{{ route('pegawai.reservasi.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                     <div>Reservasi Saya</div>
                 </a>
-            </li> --}}
+            </li>
 
             {{-- Pendapatan --}}
             {{-- <li class="menu-header small text-uppercase">
