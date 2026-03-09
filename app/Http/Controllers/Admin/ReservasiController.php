@@ -87,6 +87,13 @@ class ReservasiController extends Controller
     return redirect()->route('admin.reservasi.index')->with('success', 'Reservasi berhasil ditambahkan!');
 }
 
+    public function show(Reservasi $reservasi)
+    {
+        $layananList = $reservasi->layananList();
+        $helperList  = $reservasi->pegawaiHelpers();
+        return view('admin.reservasi.show', compact('reservasi', 'layananList', 'helperList'));
+    }
+
     public function edit(Reservasi $reservasi)
     {
         $layanans = JenisLayanan::all();

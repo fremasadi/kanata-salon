@@ -15,16 +15,20 @@
     {{-- Nama Pelanggan --}}
     <div class="col-md-6">
         <label class="form-label">Nama Pelanggan</label>
-        <input type="text" name="name_pelanggan" class="form-control" 
+        <input type="text" name="name_pelanggan" class="form-control"
                value="{{ old('name_pelanggan', $reservasi->name_pelanggan ?? '') }}" required>
     </div>
 
     {{-- Jenis --}}
     <div class="col-md-6">
         <label class="form-label">Jenis</label>
-        <select name="jenis" class="form-select" required>
+        <select name="jenis" class="form-select" required {{ isset($reservasi) ? 'disabled' : '' }}>
             <option value="Walk-in" {{ old('jenis', $reservasi->jenis ?? '') == 'Walk-in' ? 'selected' : '' }}>Walk-in</option>
+            <option value="Online" {{ old('jenis', $reservasi->jenis ?? '') == 'Online' ? 'selected' : '' }}>Online</option>
         </select>
+        @if(isset($reservasi))
+            <input type="hidden" name="jenis" value="{{ $reservasi->jenis }}">
+        @endif
     </div>
 
     {{-- Tanggal & Jam --}}
@@ -42,7 +46,7 @@
     {{-- Layanan --}}
     <div class="col-md-12">
         <label class="form-label">Layanan</label>
-        <select name="layanan_id[]" id="layanan_id" class="form-select select2" multiple required>
+        <select name="layanan_id[]" id="layanan_id" class="form-select select2" multiple required {{ isset($reservasi) ? 'disabled' : '' }}>
             @foreach($layanans as $layanan)
                 <option value="{{ $layanan->id }}"
                     data-harga="{{ $layanan->harga }}"
@@ -54,6 +58,11 @@
                 </option>
             @endforeach
         </select>
+        @if(isset($reservasi))
+            @foreach($reservasi->layanan_id as $lid)
+                <input type="hidden" name="layanan_id[]" value="{{ $lid }}">
+            @endforeach
+        @endif
     </div>
 
     {{-- Pegawai PJ --}}
@@ -69,7 +78,7 @@
             @endforeach
         </select>
     </div>
-    
+
 
     {{-- Pegawai Helper --}}
     <div class="col-md-6" id="helper_section">

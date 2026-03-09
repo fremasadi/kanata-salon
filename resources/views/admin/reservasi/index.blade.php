@@ -68,11 +68,11 @@
                                 <td>{{ \Carbon\Carbon::parse($reservasi->jam)->format('H:i') }}</td>
                                 <td>{{ $reservasi->jenis }}</td>
                                 <td>
-                                    <span class="badge 
-                                        @if($reservasi->status == 'Menunggu') bg-secondary 
-                                        @elseif($reservasi->status == 'Dikonfirmasi') bg-info 
-                                        @elseif($reservasi->status == 'Berjalan') bg-primary 
-                                        @elseif($reservasi->status == 'Selesai') bg-success 
+                                    <span class="badge
+                                        @if($reservasi->status == 'Menunggu') bg-secondary
+                                        @elseif($reservasi->status == 'Dikonfirmasi') bg-info
+                                        @elseif($reservasi->status == 'Berjalan') bg-primary
+                                        @elseif($reservasi->status == 'Selesai') bg-success
                                         @else bg-danger @endif">
                                         {{ $reservasi->status }}
                                     </span>
@@ -80,6 +80,9 @@
                                 <td>Rp {{ number_format($reservasi->total_harga, 0, ',', '.') }}</td>
                                 <td>{{ $reservasi->pegawaiPJ->user->name ?? '-' }}</td>
                                 <td>
+                                    <a href="{{ route('admin.reservasi.show', $reservasi->id) }}" class="btn btn-sm btn-outline-info">
+                                        <i class="bx bx-show"></i>
+                                    </a>
                                     <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="bx bx-edit"></i>
                                     </a>
