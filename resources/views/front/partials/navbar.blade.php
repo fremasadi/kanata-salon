@@ -5,14 +5,14 @@
             <div class="flex items-center space-x-3">
                 <a href="#" class="text-2xl font-bold text-gray-800">Kanata Salon</a>
             </div>
-            
+
             <!-- Desktop Menu -->
             <div class="hidden md:flex items-center space-x-8">
                 <a href="{{ route('landing') }}#home" class="text-gray-700 hover:text-[#EC008C] transition duration-300 font-medium">Home</a>
                 <a href="{{ route('landing') }}#layanan" class="text-gray-700 hover:text-[#EC008C] transition duration-300 font-medium">Layanan</a>
                 <a href="{{ route('landing') }}#tentang" class="text-gray-700 hover:text-[#EC008C] transition duration-300 font-medium">Tentang Kami</a>
                 <a href="{{ route('landing') }}#kontak" class="text-gray-700 hover:text-[#EC008C] transition duration-300 font-medium">Kontak</a>
-                
+
                 @if (Route::has('login'))
                     @auth
                         <!-- Cart Icon -->
@@ -46,17 +46,17 @@
                                 x-transition:leave-start="transform opacity-100 scale-100"
                                 x-transition:leave-end="transform opacity-0 scale-95"
                                 class="absolute right-0 mt-2 w-52 bg-white border rounded-lg shadow-lg py-2 z-50">
-                                
+
                                 <div class="px-4 py-2 text-gray-700 border-b">
                                     <p class="font-semibold">{{ Auth::user()->name }}</p>
                                     <p class="text-sm text-gray-500">{{ Auth::user()->email }}</p>
                                 </div>
-                            <a href="{{ route('history.index') }}" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 ">
-                                
+                            {{-- <a href="{{ route('history.index') }}" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 ">
+
                                 Riwayat
-                            </a>
-                                
-                               
+                            </a> --}}
+
+
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"
@@ -78,7 +78,7 @@
                     @endauth
                 @endif
             </div>
-            
+
             <!-- Mobile Menu Button -->
             <button @click="mobileMenu = !mobileMenu" class="md:hidden text-gray-700 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
                 </svg>
             </button>
         </div>
-        
+
         <!-- Mobile Menu -->
         <div x-show="mobileMenu" x-cloak class="md:hidden pb-4">
             <div class="flex flex-col space-y-3">
@@ -94,11 +94,11 @@
                 <a href="{{ route('landing') }}#layanan" class="text-gray-700 hover:text-[#EC008C] transition duration-300">Layanan</a>
                 <a href="{{ route('landing') }}#tentang" class="text-gray-700 hover:text-[#EC008C] transition duration-300">Tentang Kami</a>
                 <a href="{{ route('landing') }}#kontak" class="text-gray-700 hover:text-[#EC008C] transition duration-300">Kontak</a>
-                
+
                 @if (Route::has('login'))
                     @auth
-                    
-                        
+
+
                         <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-[#EC008C] transition duration-300">
                             Profil
                         </a>
