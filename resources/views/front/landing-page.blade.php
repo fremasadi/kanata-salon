@@ -131,8 +131,8 @@
                             </div>
 
                             @auth
-                            {{-- //addToCart({{ $item->id }}) --}}
-                                <button onclick=""
+                            {{-- // --}}
+                                <button onclick="addToCart({{ $item->id }})"
                                     class="block w-full bg-gradient-to-r from-[#EC008C] to-[#D4006F] text-white text-center py-3 rounded-full font-semibold hover:from-[#D4006F] hover:to-[#EC008C] transition duration-300">
                                     <span class="flex items-center justify-center">
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
