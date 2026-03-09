@@ -9,12 +9,12 @@
         <div class="absolute top-10 left-10 w-64 h-64 bg-[#C9A961] rounded-full blur-3xl"></div>
         <div class="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
     </div>
-    
+
     <div class="container mx-auto px-4 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
                 <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                    Tampil <span class="text-[#C9A961]">Cantik</span> & 
+                    Tampil <span class="text-[#C9A961]">Cantik</span> &
                     <span class="text-[#C9A961]">Percaya Diri</span>
                 </h1>
                 <p class="text-xl mb-8 text-white/90">
@@ -51,7 +51,7 @@
             </h2>
             <p class="text-xl text-gray-600">Keunggulan yang membuat kami berbeda</p>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-pink-50 to-white hover:shadow-xl transition duration-300">
                 <div class="w-20 h-20 bg-gradient-to-br from-[#EC008C] to-[#D4006F] rounded-full flex items-center justify-center mx-auto mb-6">
@@ -62,7 +62,7 @@
                 <h3 class="text-2xl font-bold text-gray-800 mb-4">Tim Profesional</h3>
                 <p class="text-gray-600">Stylist berpengalaman dan terlatih untuk hasil terbaik</p>
             </div>
-            
+
             <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-yellow-50 to-white hover:shadow-xl transition duration-300">
                 <div class="w-20 h-20 bg-gradient-to-br from-[#C9A961] to-[#E6D5A8] rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -72,7 +72,7 @@
                 <h3 class="text-2xl font-bold text-gray-800 mb-4">Produk Berkualitas</h3>
                 <p class="text-gray-600">Menggunakan produk premium dan aman untuk rambut Anda</p>
             </div>
-            
+
             <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-white hover:shadow-xl transition duration-300">
                 <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +95,7 @@
             </h2>
             <p class="text-xl text-gray-600">Beragam layanan kecantikan untuk Anda</p>
         </div>
-        
+
         @if($layanan->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 @foreach($layanan as $item)
@@ -109,12 +109,12 @@
                                 </svg>
                             </div>
                         @endif
-                        
+
                         <div class="p-6">
-                        
+
                             <h4 class="text-2xl font-bold text-gray-800 mb-3">{{ $item->name }}</h4>
                             <p class="text-gray-600 mb-4 min-h-[60px]">{{ Str::limit($item->deskripsi, 100) }}</p>
-                            
+
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center text-gray-600">
                                     <svg class="w-5 h-5 mr-2 text-[#C9A961]" fill="currentColor" viewBox="0 0 20 20">
@@ -123,15 +123,16 @@
                                     <span>{{ $item->durasi_menit }} menit</span>
                                 </div>
                                 <div class="text-lg font-bold text-[#EC008C]">
-                                    Rp {{ number_format($item->harga, 0, ',', '.') }} 
+                                    Rp {{ number_format($item->harga, 0, ',', '.') }}
                                     @if($item->harga_max && $item->harga_max > $item->harga)
                                         - Rp {{ number_format($item->harga_max, 0, ',', '.') }}
                                     @endif
                                 </div>
                             </div>
-                            
+
                             @auth
-                                <button onclick="addToCart({{ $item->id }})" 
+                            {{-- //addToCart({{ $item->id }}) --}}
+                                <button onclick=""
                                     class="block w-full bg-gradient-to-r from-[#EC008C] to-[#D4006F] text-white text-center py-3 rounded-full font-semibold hover:from-[#D4006F] hover:to-[#EC008C] transition duration-300">
                                     <span class="flex items-center justify-center">
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +175,7 @@
                 <p class="text-lg text-gray-600 mb-6">
                     Dengan tim profesional yang berpengalaman lebih dari 10 tahun, kami berkomitmen memberikan hasil yang memuaskan dan pengalaman yang tak terlupakan bagi setiap pelanggan.
                 </p>
-                
+
                 <div class="grid grid-cols-2 gap-6 mt-8">
                     <div class="text-center p-6 bg-gradient-to-br from-pink-50 to-white rounded-2xl">
                         <div class="text-4xl font-bold text-[#EC008C] mb-2">10+</div>
@@ -207,7 +208,7 @@
             </h2>
             <p class="text-xl text-white/90">Testimoni pelanggan setia kami</p>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
                 <div class="flex items-center mb-4">
@@ -227,7 +228,7 @@
                 </div>
                 <p class="text-gray-600 italic">"Pelayanan sangat memuaskan! Stylistnya profesional dan hasilnya sesuai harapan. Pasti akan kembali lagi!"</p>
             </div>
-            
+
             <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
                 <div class="flex items-center mb-4">
                     <div class="w-16 h-16 bg-gradient-to-br from-[#C9A961] to-[#E6D5A8] rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4">
@@ -246,7 +247,7 @@
                 </div>
                 <p class="text-gray-600 italic">"Suasana salon nyaman dan bersih. Produk yang digunakan berkualitas. Recommended banget!"</p>
             </div>
-            
+
             <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
                 <div class="flex items-center mb-4">
                     <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4">
