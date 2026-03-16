@@ -24,7 +24,7 @@
         <label class="form-label">Jenis</label>
         <select name="jenis" class="form-select" required {{ isset($reservasi) ? 'disabled' : '' }}>
             <option value="Walk-in" {{ old('jenis', $reservasi->jenis ?? '') == 'Walk-in' ? 'selected' : '' }}>Walk-in</option>
-            <option value="Online" {{ old('jenis', $reservasi->jenis ?? '') == 'Online' ? 'selected' : '' }}>Online</option>
+            {{-- <option value="Online" {{ old('jenis', $reservasi->jenis ?? '') == 'Online' ? 'selected' : '' }}>Online</option> --}}
         </select>
         @if(isset($reservasi))
             <input type="hidden" name="jenis" value="{{ $reservasi->jenis }}">
