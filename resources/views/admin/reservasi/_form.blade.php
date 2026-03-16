@@ -230,17 +230,28 @@ $(document).ready(function() {
         showShiftInfo('#pegawai_helper_id', '#info_shift_helper');
     });
 
-    // ---- Cek Ketersediaan Pegawai PJ ----
+    // ---- Cek Ketersediaan Pegawai PJ & Helper ----
     function fetchAvailablePegawai() {
         const tanggal    = $('input[name="tanggal"]').val();
         const jam        = $('input[name="jam"]').val();
+        @if(!isset($reservasi))
         const layananIds = $('#layanan_id').val();
+        @else
+        const layananIds = {!! json_encode($reservasi->layanan_id) !!};
+        @endif
         const excludeId  = {{ isset($reservasi) ? $reservasi->id : 'null' }};
 
-        if (!tanggal || !jam || !layananIds || layananIds.length === 0) {
-            $('#pj-info').text('Isi tanggal, jam, dan layanan terlebih dahulu.').addClass('text-warning').removeClass('text-muted text-success text-danger');
+        if (!tanggal || !jam) {
+            $('#pj-info').text('Isi tanggal dan jam terlebih dahulu.').addClass('text-warning').removeClass('text-muted text-success text-danger');
             return;
         }
+
+        @if(!isset($reservasi))
+        if (!layananIds || layananIds.length === 0) {
+            $('#pj-info').text('Pilih layanan terlebih dahulu.').addClass('text-warning').removeClass('text-muted text-success text-danger');
+            return;
+        }
+        @endif
 
         $('#pj-loading').removeClass('d-none');
         $('#pj-info').text('');
@@ -254,21 +265,33 @@ $(document).ready(function() {
             success: function(data) {
                 $('#pj-loading').addClass('d-none');
 
-                const currentVal = $('#pegawai_pj_id').val();
+                const currentPJ      = $('#pegawai_pj_id').val();
+                const currentHelpers = $('#pegawai_helper_id').val() || [];
+
+                // --- Populate PJ ---
                 $('#pegawai_pj_id').empty().append('<option value="">-- Pilih Pegawai --</option>');
+                // --- Populate Helper ---
+                $('#pegawai_helper_id').empty();
 
                 if (data.length === 0) {
-                    $('#pj-info').text('Tidak ada pegawai tersedia di jam dan tanggal ini.').addClass('text-danger').removeClass('text-muted text-warning text-success');
+                    $('#pj-info').text('Tidak ada pegawai tersedia di shift jam ' + jam + '.').addClass('text-danger').removeClass('text-muted text-warning text-success');
+                    $('#pegawai_pj_id').trigger('change.select2');
+                    $('#pegawai_helper_id').trigger('change.select2');
                     return;
                 }
 
                 data.forEach(function(p) {
-                    const selected = currentVal == p.id ? 'selected' : '';
-                    $('#pegawai_pj_id').append(`<option value="${p.id}" ${selected}>${p.nama} — ${p.shift}</option>`);
+                    const pjSelected     = currentPJ == p.id ? 'selected' : '';
+                    const helperSelected = currentHelpers.includes(String(p.id)) ? 'selected' : '';
+                    const label          = `${p.nama} — ${p.shift}`;
+
+                    $('#pegawai_pj_id').append(`<option value="${p.id}" ${pjSelected}>${label}</option>`);
+                    $('#pegawai_helper_id').append(`<option value="${p.id}" ${helperSelected}>${label}</option>`);
                 });
 
                 $('#pegawai_pj_id').trigger('change.select2');
-                $('#pj-info').text(data.length + ' pegawai tersedia.').addClass('text-success').removeClass('text-muted text-warning text-danger');
+                $('#pegawai_helper_id').trigger('change.select2');
+                $('#pj-info').text(data.length + ' pegawai tersedia di shift jam ' + jam + '.').addClass('text-success').removeClass('text-muted text-warning text-danger');
             },
             error: function() {
                 $('#pj-loading').addClass('d-none');
@@ -285,6 +308,20 @@ $(document).ready(function() {
             fetchAvailablePegawai();
         }
     });
+
+    // Auto-cek saat layanan berubah (create only)
+    @if(!isset($reservasi))
+    $('#layanan_id').on('change', function() {
+        if ($('input[name="tanggal"]').val() && $('input[name="jam"]').val()) {
+            fetchAvailablePegawai();
+        }
+    });
+    @endif
+
+    // Auto-cek saat halaman load jika tanggal & jam sudah ada (edit mode)
+    if ($('input[name="tanggal"]').val() && $('input[name="jam"]').val()) {
+        fetchAvailablePegawai();
+    }
 
     // Trigger awal
     updateHelperVisibility();
