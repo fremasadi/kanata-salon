@@ -3,6 +3,11 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Detail Reservasi</h5>
             <div class="d-flex gap-2">
+                @if($reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP' && !in_array($reservasi->status, ['Batal']))
+                    <a href="{{ route('admin.reservasi.pelunasan', $reservasi->id) }}" class="btn btn-sm btn-success">
+                        <i class="bx bx-money"></i> Proses Pelunasan
+                    </a>
+                @endif
                 <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
                     <i class="bx bx-edit"></i> Edit
                 </a>

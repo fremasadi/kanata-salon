@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="hidden md:block">
-                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600" alt="Salon" class="rounded-3xl shadow-2xl">
+                <img src="assets/hero2.jpeg" alt="Salon" class="rounded-3xl shadow-2xl">
             </div>
         </div>
     </div>
@@ -204,7 +204,7 @@
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-                <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600" alt="About Us" class="rounded-3xl shadow-2xl">
+                <img src="assets/hero1.jpeg" alt="About Us" class="rounded-3xl shadow-2xl">
             </div>
             <div>
                 <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">

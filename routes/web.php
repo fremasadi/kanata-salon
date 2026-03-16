@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
         Route::post('reservasi/available-pegawai', [\App\Http\Controllers\Admin\ReservasiController::class, 'availablePegawai'])->name('reservasi.available-pegawai');
         Route::patch('reservasi/{reservasi}/update-status', [\App\Http\Controllers\Admin\ReservasiController::class, 'updateStatus'])->name('reservasi.update-status');
+        Route::get('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'showPelunasan'])->name('reservasi.pelunasan');
+        Route::post('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'prosesPelunasan'])->name('reservasi.proses-pelunasan');
         Route::resource('reservasi', \App\Http\Controllers\Admin\ReservasiController::class);
 
     });

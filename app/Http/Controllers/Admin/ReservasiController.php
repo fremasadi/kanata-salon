@@ -149,6 +149,45 @@ class ReservasiController extends Controller
         return back()->with('success', 'Status reservasi berhasil diubah menjadi "' . $newStatus . '".');
     }
 
+    public function showPelunasan(Reservasi $reservasi)
+    {
+        abort_if(
+            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas',
+            403,
+            'Pelunasan hanya tersedia untuk reservasi Online yang belum Lunas.'
+        );
+
+        $layananList = $reservasi->layananList();
+        return view('admin.reservasi.pelunasan', compact('reservasi', 'layananList'));
+    }
+
+    public function prosesPelunasan(Request $request, Reservasi $reservasi)
+    {
+        abort_if(
+            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas',
+            403
+        );
+
+        $request->validate([
+            'harga_final'   => 'required|array',
+            'harga_final.*' => 'required|numeric|min:0',
+        ]);
+
+        $totalFinal = array_sum($request->harga_final);
+        $sisaTagihan = $totalFinal - $reservasi->jumlah_pembayaran;
+
+        $reservasi->update([
+            'total_harga'        => $totalFinal,
+            'jumlah_pembayaran'  => $totalFinal,
+            'status_pembayaran'  => 'Lunas',
+            'status'             => 'Selesai',
+        ]);
+
+        return redirect()
+            ->route('admin.reservasi.show', $reservasi->id)
+            ->with('success', 'Pelunasan berhasil! Sisa tagihan Rp ' . number_format($sisaTagihan, 0, ',', '.') . ' telah diterima. Reservasi ditandai Selesai.');
+    }
+
     public function destroy(Reservasi $reservasi)
     {
         $reservasi->delete();
