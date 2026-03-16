@@ -30,6 +30,9 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('reservasi/{reservasi}/update-status', [\App\Http\Controllers\Admin\ReservasiController::class, 'updateStatus'])->name('reservasi.update-status');
         Route::get('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'showPelunasan'])->name('reservasi.pelunasan');
         Route::post('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'prosesPelunasan'])->name('reservasi.proses-pelunasan');
+        Route::get('reservasi/{reservasi}/mulai', [\App\Http\Controllers\Admin\ReservasiController::class, 'showMulai'])->name('reservasi.mulai');
+        Route::post('reservasi/{reservasi}/mulai', [\App\Http\Controllers\Admin\ReservasiController::class, 'prosesMulai'])->name('reservasi.proses-mulai');
+        Route::post('reservasi/{reservasi}/selesai', [\App\Http\Controllers\Admin\ReservasiController::class, 'tandaiSelesai'])->name('reservasi.selesai');
         Route::resource('reservasi', \App\Http\Controllers\Admin\ReservasiController::class);
 
     });

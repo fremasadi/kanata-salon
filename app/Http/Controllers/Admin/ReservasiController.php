@@ -65,14 +65,15 @@ class ReservasiController extends Controller
         'jam' => 'required',
         'jenis' => 'required|in:Online,Walk-in',
         'total_harga' => 'required|numeric|min:0',
-        'pegawai_pj_id' => 'required|exists:pegawais,id',
+        'pegawai_pj_id' => 'nullable|exists:pegawais,id',
         'pegawai_helper_id' => 'nullable|array',
         'status_pembayaran' => 'required|in:DP,Lunas',
         'jumlah_pembayaran' => 'nullable|numeric|min:0',
     ]);
 
-   
+
     $data['pegawai_helper_id'] = $data['pegawai_helper_id'] ?? [];
+    $data['pegawai_pj_id'] = $data['pegawai_pj_id'] ?? null;
     $data['status'] = 'Menunggu';
 
     // Jika status Lunas, jumlah_pembayaran otomatis = total_harga
@@ -134,18 +135,11 @@ class ReservasiController extends Controller
     public function updateStatus(Request $request, Reservasi $reservasi)
     {
         $request->validate([
-            'status' => 'required|in:Dikonfirmasi,Berjalan,Selesai,Batal',
+            'status' => 'required|in:Dikonfirmasi,Batal',
         ]);
 
         $newStatus = $request->status;
-
-        // Untuk reservasi Online, status Berjalan/Selesai hanya bisa jika sudah Lunas
-        if ($reservasi->jenis === 'Online'
-            && !in_array($newStatus, ['Batal'])
-            && $newStatus !== 'Dikonfirmasi'
-            && $reservasi->status_pembayaran !== 'Lunas') {
-            return back()->with('error', 'Status "' . $newStatus . '" hanya bisa diubah jika pembayaran sudah Lunas.');
-        }
+        // No guard needed — Dikonfirmasi and Batal are always allowed
 
         $reservasi->update(['status' => $newStatus]);
 
@@ -155,9 +149,9 @@ class ReservasiController extends Controller
     public function showPelunasan(Reservasi $reservasi)
     {
         abort_if(
-            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas',
+            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas' || $reservasi->status !== 'Berjalan',
             403,
-            'Pelunasan hanya tersedia untuk reservasi Online yang belum Lunas.'
+            'Pelunasan hanya tersedia untuk reservasi Online yang sedang Berjalan dan belum Lunas.'
         );
 
         $layananList = $reservasi->layananList();
@@ -167,8 +161,9 @@ class ReservasiController extends Controller
     public function prosesPelunasan(Request $request, Reservasi $reservasi)
     {
         abort_if(
-            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas',
-            403
+            $reservasi->jenis !== 'Online' || $reservasi->status_pembayaran === 'Lunas' || $reservasi->status !== 'Berjalan',
+            403,
+            'Pelunasan hanya tersedia untuk reservasi Online yang sedang Berjalan dan belum Lunas.'
         );
 
         $request->validate([
@@ -189,6 +184,56 @@ class ReservasiController extends Controller
         return redirect()
             ->route('admin.reservasi.show', $reservasi->id)
             ->with('success', 'Pelunasan berhasil! Sisa tagihan Rp ' . number_format($sisaTagihan, 0, ',', '.') . ' telah diterima. Reservasi ditandai Selesai.');
+    }
+
+    public function showMulai(Reservasi $reservasi)
+    {
+        abort_if(
+            in_array($reservasi->status, ['Berjalan', 'Selesai', 'Batal']),
+            403,
+            'Layanan sudah dimulai atau selesai.'
+        );
+        $layananList = $reservasi->layananList();
+        return view('admin.reservasi.mulai', compact('reservasi', 'layananList'));
+    }
+
+    public function prosesMulai(Request $request, Reservasi $reservasi)
+    {
+        abort_if(
+            in_array($reservasi->status, ['Berjalan', 'Selesai', 'Batal']),
+            403
+        );
+
+        $request->validate([
+            'pegawai_pj_id'       => 'required|exists:pegawais,id',
+            'pegawai_helper_id'   => 'nullable|array',
+            'pegawai_helper_id.*' => 'exists:pegawais,id',
+        ]);
+
+        $reservasi->update([
+            'pegawai_pj_id'     => $request->pegawai_pj_id,
+            'pegawai_helper_id' => $request->pegawai_helper_id ?? [],
+            'status'            => 'Berjalan',
+        ]);
+
+        return redirect()
+            ->route('admin.reservasi.show', $reservasi->id)
+            ->with('success', 'Layanan dimulai! PJ dan Helper telah ditetapkan.');
+    }
+
+    public function tandaiSelesai(Reservasi $reservasi)
+    {
+        abort_if(
+            $reservasi->status !== 'Berjalan' || $reservasi->status_pembayaran !== 'Lunas',
+            403,
+            'Hanya reservasi yang sedang Berjalan dan sudah Lunas yang dapat ditandai Selesai.'
+        );
+
+        $reservasi->update(['status' => 'Selesai']);
+
+        return redirect()
+            ->route('admin.reservasi.show', $reservasi->id)
+            ->with('success', 'Reservasi telah diselesaikan.');
     }
 
     public function destroy(Reservasi $reservasi)

@@ -113,15 +113,12 @@
                                                     // Menunggu hanya muncul jika status saat ini masih Menunggu (read-only label)
                                                     $statusOptions = $reservasi->status === 'Menunggu'
                                                         ? ['Menunggu', 'Dikonfirmasi', 'Batal']
-                                                        : ['Dikonfirmasi', 'Berjalan', 'Batal'];
+                                                        : ['Dikonfirmasi', 'Batal'];
                                                 @endphp
                                                 @foreach($statusOptions as $st)
                                                     <option value="{{ $st }}"
                                                         {{ $reservasi->status == $st ? 'selected' : '' }}
-                                                        @if($st === 'Menunggu') disabled @endif
-                                                        @if(!in_array($st, ['Batal']) && $st !== $reservasi->status && $reservasi->status_pembayaran !== 'Lunas' && $reservasi->jenis === 'Online')
-                                                            disabled title="Pembayaran Online belum Lunas"
-                                                        @endif>
+                                                        @if($st === 'Menunggu') disabled @endif>
                                                         {{ $st }}
                                                     </option>
                                                 @endforeach

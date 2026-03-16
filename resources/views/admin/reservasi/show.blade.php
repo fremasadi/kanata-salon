@@ -2,15 +2,40 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Detail Reservasi</h5>
-            <div class="d-flex gap-2">
-                @if($reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP' && !in_array($reservasi->status, ['Batal']))
-                    <a href="{{ route('admin.reservasi.pelunasan', $reservasi->id) }}" class="btn btn-sm btn-success">
-                        <i class="bx bx-money"></i> Proses Pelunasan
+            <div class="d-flex gap-2 flex-wrap">
+                {{-- Mulai Layanan: status Menunggu atau Dikonfirmasi --}}
+                @if(in_array($reservasi->status, ['Menunggu', 'Dikonfirmasi']))
+                    <a href="{{ route('admin.reservasi.mulai', $reservasi->id) }}"
+                       class="btn btn-sm btn-primary" style="background-color:#e30083;border:none;">
+                        <i class="bx bx-play-circle"></i> Mulai Layanan
                     </a>
                 @endif
-                <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bx bx-edit"></i> Edit
-                </a>
+
+                {{-- Selesaikan Tagihan: Online + DP + Berjalan --}}
+                @if($reservasi->status === 'Berjalan' && $reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP')
+                    <a href="{{ route('admin.reservasi.pelunasan', $reservasi->id) }}"
+                       class="btn btn-sm btn-success">
+                        <i class="bx bx-money"></i> Selesaikan Tagihan
+                    </a>
+                @endif
+
+                {{-- Tandai Selesai: Walk-in + Lunas + Berjalan --}}
+                @if($reservasi->status === 'Berjalan' && $reservasi->status_pembayaran === 'Lunas')
+                    <form method="POST" action="{{ route('admin.reservasi.selesai', $reservasi->id) }}" class="d-inline"
+                          onsubmit="return confirm('Tandai reservasi ini sebagai Selesai?')">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bx bx-check-circle"></i> Tandai Selesai
+                        </button>
+                    </form>
+                @endif
+
+                @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
+                    <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bx bx-edit"></i> Edit
+                    </a>
+                @endif
+
                 <a href="{{ route('admin.reservasi.index') }}" class="btn btn-sm btn-secondary">
                     <i class="bx bx-arrow-back"></i> Kembali
                 </a>
@@ -18,6 +43,18 @@
         </div>
 
         <div class="card-body">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible">
+                        <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible">
+                        <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
             <div class="row g-4">
 
                 {{-- Info Reservasi --}}
