@@ -38,7 +38,7 @@
                     type="time" 
                     name="waktu_mulai" 
                     id="waktu_mulai"
-                    value="{{ old('waktu_mulai', $shift->waktu_mulai ? substr($shift->waktu_mulai, 0, 5) : '') }}"
+                    value="{{ old('waktu_mulai', isset($shift) && $shift->waktu_mulai ? substr($shift->waktu_mulai, 0, 5) : '') }}"
                     class="form-control @error('waktu_mulai') is-invalid @enderror"
                     required
                 >
@@ -54,7 +54,7 @@
                     type="time" 
                     name="waktu_selesai" 
                     id="waktu_selesai"
-                    value="{{ old('waktu_selesai', $shift->waktu_selesai ? substr($shift->waktu_selesai, 0, 5) : '') }}"
+                    value="{{ old('waktu_selesai', isset($shift) && $shift->waktu_selesai ? substr($shift->waktu_selesai, 0, 5) : '') }}"
                     class="form-control @error('waktu_selesai') is-invalid @enderror"
                     required
                 >
