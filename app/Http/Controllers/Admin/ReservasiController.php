@@ -134,14 +134,17 @@ class ReservasiController extends Controller
     public function updateStatus(Request $request, Reservasi $reservasi)
     {
         $request->validate([
-            'status' => 'required|in:Menunggu,Dikonfirmasi,Berjalan,Selesai,Batal',
+            'status' => 'required|in:Dikonfirmasi,Berjalan,Selesai,Batal',
         ]);
 
         $newStatus = $request->status;
 
-        // Status selain Batal/Menunggu hanya bisa diproses jika pembayaran sudah Lunas
-        if (!in_array($newStatus, ['Menunggu', 'Batal']) && $reservasi->status_pembayaran !== 'Lunas') {
-            return back()->with('error', 'Status hanya bisa diubah ke "' . $newStatus . '" jika pembayaran sudah Lunas.');
+        // Untuk reservasi Online, status Berjalan/Selesai hanya bisa jika sudah Lunas
+        if ($reservasi->jenis === 'Online'
+            && !in_array($newStatus, ['Batal'])
+            && $newStatus !== 'Dikonfirmasi'
+            && $reservasi->status_pembayaran !== 'Lunas') {
+            return back()->with('error', 'Status "' . $newStatus . '" hanya bisa diubah jika pembayaran sudah Lunas.');
         }
 
         $reservasi->update(['status' => $newStatus]);

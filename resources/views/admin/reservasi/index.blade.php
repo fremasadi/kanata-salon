@@ -109,11 +109,18 @@
                                                     class="form-select form-select-sm"
                                                     style="min-width:125px;"
                                                     onchange="this.form.submit()">
-                                                @foreach(['Menunggu','Dikonfirmasi','Berjalan','Selesai','Batal'] as $st)
+                                                @php
+                                                    // Menunggu hanya muncul jika status saat ini masih Menunggu (read-only label)
+                                                    $statusOptions = $reservasi->status === 'Menunggu'
+                                                        ? ['Menunggu', 'Dikonfirmasi', 'Batal']
+                                                        : ['Dikonfirmasi', 'Berjalan', 'Batal'];
+                                                @endphp
+                                                @foreach($statusOptions as $st)
                                                     <option value="{{ $st }}"
                                                         {{ $reservasi->status == $st ? 'selected' : '' }}
-                                                        @if(!in_array($st, ['Menunggu','Batal']) && $reservasi->status_pembayaran !== 'Lunas')
-                                                            disabled title="Pembayaran belum Lunas"
+                                                        @if($st === 'Menunggu') disabled @endif
+                                                        @if(!in_array($st, ['Batal']) && $st !== $reservasi->status && $reservasi->status_pembayaran !== 'Lunas' && $reservasi->jenis === 'Online')
+                                                            disabled title="Pembayaran Online belum Lunas"
                                                         @endif>
                                                         {{ $st }}
                                                     </option>

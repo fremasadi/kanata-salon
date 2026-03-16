@@ -227,10 +227,17 @@ public function create($reservasiId)
             $isPaidInFull    = (int) $pembayaran->gross_amount >= (int) $reservasi->total_harga;
             $newStatusBayar  = $isPaidInFull ? 'Lunas' : 'DP';
 
-            $reservasi->update([
+            $reservasiUpdate = [
                 'status_pembayaran' => $newStatusBayar,
                 'jumlah_pembayaran' => $pembayaran->gross_amount,
-            ]);
+            ];
+
+            // Otomatis Dikonfirmasi setelah pembayaran berhasil
+            if ($reservasi->status === 'Menunggu') {
+                $reservasiUpdate['status'] = 'Dikonfirmasi';
+            }
+
+            $reservasi->update($reservasiUpdate);
         }
 
         $pembayaran->update($updateData);
