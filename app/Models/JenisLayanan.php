@@ -23,8 +23,18 @@ class JenisLayanan extends Model
     ];
 
     protected $casts = [
-        'harga' => 'decimal:2',
+        'harga'        => 'decimal:2',
+        'harga_max'    => 'decimal:2',
         'durasi_menit' => 'integer',
-        'harga_max' => 'decimal:2'
+        'image'        => 'array',
     ];
+
+    /**
+     * Ambil URL gambar pertama, atau null jika tidak ada.
+     */
+    public function getFirstImageUrlAttribute(): ?string
+    {
+        $images = $this->image ?? [];
+        return !empty($images) ? \Illuminate\Support\Facades\Storage::url($images[0]) : null;
+    }
 }

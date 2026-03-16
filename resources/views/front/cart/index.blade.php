@@ -22,8 +22,9 @@
                             <div class="flex items-center gap-4 py-4 border-b last:border-b-0" data-item-id="{{ $itemId }}">
                                 <!-- Image -->
                                 <div class="flex-shrink-0">
-                                    @if($item['image'])
-                                        <img src="{{ Storage::url($item['image']) }}" alt="{{ $item['name'] }}" class="w-24 h-24 object-cover rounded-lg">
+                                    @php $firstImg = is_array($item['image']) ? ($item['image'][0] ?? null) : $item['image']; @endphp
+                                                    @if($firstImg)
+                                        <img src="{{ Storage::url($firstImg) }}" alt="{{ $item['name'] }}" class="w-24 h-24 object-cover rounded-lg">
                                     @else
                                         <div class="w-24 h-24 bg-gradient-to-br from-[#EC008C] to-[#D4006F] rounded-lg flex items-center justify-center">
                                             <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">

@@ -96,12 +96,29 @@
             <p class="text-xl text-gray-600">Beragam layanan kecantikan untuk Anda</p>
         </div>
 
+        {{-- Filter Search & Jenis --}}
+        <div class="flex flex-col sm:flex-row gap-4 mb-16 max-w-2xl mx-auto">
+            <input type="text" id="search-layanan" placeholder="Cari layanan..."
+                   class="flex-1 px-5 py-3 rounded-full border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#EC008C]">
+            <select id="filter-jenis"
+                    class="pl-5 pr-10 py-3 rounded-full border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#EC008C] bg-white appearance-none"
+                    style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\"); background-repeat:no-repeat; background-position:right 1rem center;">
+                <option value="">Semua Jenis</option>
+                @foreach($jenisList as $j)
+                    <option value="{{ $j->name }}">{{ $j->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
         @if($layanan->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="layanan-grid">
                 @foreach($layanan as $item)
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
-                        @if($item->image)
-                            <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="w-full h-48 object-cover">
+                    <a href="{{ route('layanan.show', $item->id) }}"
+                       class="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 layanan-card"
+                       data-name="{{ strtolower($item->name) }}"
+                       data-jenis="{{ $item->jenis }}">
+                        @if($item->first_image_url)
+                            <img src="{{ $item->first_image_url }}" alt="{{ $item->name }}" class="w-full h-48 object-cover">
                         @else
                             <div class="w-full h-48 bg-gradient-to-br from-[#EC008C] to-[#D4006F] flex items-center justify-center">
                                 <svg class="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -111,7 +128,6 @@
                         @endif
 
                         <div class="p-6">
-
                             <h4 class="text-2xl font-bold text-gray-800 mb-3">{{ $item->name }}</h4>
                             <p class="text-gray-600 mb-4 min-h-[60px]">{{ Str::limit($item->deskripsi, 100) }}</p>
 
@@ -130,25 +146,16 @@
                                 </div>
                             </div>
 
-                            @auth
-                            {{-- // --}}
-                                <button onclick="addToCart({{ $item->id }})"
-                                    class="block w-full bg-gradient-to-r from-[#EC008C] to-[#D4006F] text-white text-center py-3 rounded-full font-semibold hover:from-[#D4006F] hover:to-[#EC008C] transition duration-300">
-                                    <span class="flex items-center justify-center">
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                        </svg>
-                                        Tambah ke Keranjang
-                                    </span>
-                                </button>
-                            @else
-                                <a href="{{ route('register') }}" class="block w-full bg-gradient-to-r from-[#EC008C] to-[#D4006F] text-white text-center py-3 rounded-full font-semibold hover:from-[#D4006F] hover:to-[#EC008C] transition duration-300">
-                                    Daftar untuk Booking
-                                </a>
-                            @endauth
+                            <span class="block w-full border border-[#EC008C] text-[#EC008C] py-2 rounded-full text-sm font-semibold text-center hover:bg-pink-50 transition duration-300">
+                                Lihat Detail
+                            </span>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
+            </div>
+            {{-- Pesan jika tidak ada hasil filter --}}
+            <div id="no-result" class="hidden col-span-3 text-center py-12">
+                <p class="text-gray-500 text-xl">Tidak ada layanan yang sesuai.</p>
             </div>
         @else
             <div class="text-center py-12">
@@ -157,6 +164,40 @@
         @endif
     </div>
 </section>
+
+@push('scripts')
+<script>
+    (function () {
+        const searchInput = document.getElementById('search-layanan');
+        const jenisSelect = document.getElementById('filter-jenis');
+        const noResult    = document.getElementById('no-result');
+
+        function filterCards() {
+            const keyword = searchInput.value.toLowerCase().trim();
+            const jenis   = jenisSelect.value;
+            const cards   = document.querySelectorAll('.layanan-card');
+            let visible   = 0;
+
+            cards.forEach(card => {
+                const matchName  = card.dataset.name.includes(keyword);
+                const matchJenis = !jenis || card.dataset.jenis === jenis;
+
+                if (matchName && matchJenis) {
+                    card.style.display = '';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (noResult) noResult.classList.toggle('hidden', visible > 0);
+        }
+
+        searchInput?.addEventListener('input', filterCards);
+        jenisSelect?.addEventListener('change', filterCards);
+    })();
+</script>
+@endpush
 
 <!-- About Section -->
 <section id="tentang" class="py-20 bg-white">

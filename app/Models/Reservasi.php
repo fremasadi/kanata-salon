@@ -36,6 +36,11 @@ class Reservasi extends Model
         return $this->hasOne(Pembayaran::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
 
     // Relasi ke pegawai penanggung jawab
     public function pegawaiPJ()

@@ -24,7 +24,7 @@ class ShiftController extends Controller
         $request->validate([
             'nama' => 'required|string|max:100',
             'waktu_mulai' => 'required|date_format:H:i',
-            'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
+            'waktu_selesai' => 'required|date_format:H:i',
         ]);
 
         Shift::create($request->all());
@@ -41,7 +41,7 @@ class ShiftController extends Controller
         $request->validate([
             'nama' => 'required|string|max:100',
             'waktu_mulai' => 'required|date_format:H:i',
-            'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
+            'waktu_selesai' => 'required|date_format:H:i',
         ]);
 
         $shift->update($request->all());

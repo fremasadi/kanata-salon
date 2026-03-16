@@ -12,7 +12,7 @@ class HistoryController extends Controller
     public function index(Request $request)
     {
         $query = Reservasi::where('name_pelanggan', Auth::user()->name)
-            ->with(['pembayaran', 'pegawaiPJ'])
+            ->with(['pembayaran', 'pegawaiPJ', 'reviews'])
             ->orderBy('created_at', 'desc');
 
         // Filter berdasarkan status
@@ -33,7 +33,7 @@ class HistoryController extends Controller
     public function show($id)
     {
         $reservasi = Reservasi::where('name_pelanggan', Auth::user()->name)
-            ->with(['pembayaran', 'pegawaiPJ'])
+            ->with(['pembayaran', 'pegawaiPJ', 'reviews'])
             ->findOrFail($id);
 
         return view('front.history.show', compact('reservasi'));

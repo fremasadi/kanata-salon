@@ -37,10 +37,14 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    @if($item->image)
-                                        <img src="{{ Storage::url($item->image) }}" 
-                                             alt="{{ $item->name }}" 
-                                             class="rounded" style="max-height:50px; width:auto;">
+                                    @php $firstImg = $item->first_image_url; @endphp
+                                    @if($firstImg)
+                                        <img src="{{ $firstImg }}"
+                                             alt="{{ $item->name }}"
+                                             class="rounded" style="height:50px; width:60px; object-fit:cover;">
+                                        @if(count($item->image ?? []) > 1)
+                                            <span class="badge bg-secondary ms-1">+{{ count($item->image) - 1 }}</span>
+                                        @endif
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif

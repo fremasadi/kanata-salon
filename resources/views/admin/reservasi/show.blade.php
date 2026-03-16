@@ -148,8 +148,28 @@
                 {{-- Pegawai --}}
                 <div class="col-md-6">
                     <div class="card border h-100">
-                        <div class="card-header fw-semibold bg-light">Pegawai</div>
+                        <div class="card-header fw-semibold bg-light d-flex justify-content-between align-items-center">
+                            <span>Pegawai</span>
+                            @if(!$reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
+                                <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}"
+                                   class="btn btn-sm btn-warning text-dark">
+                                    <i class="bx bx-user-plus"></i> Assign Pegawai
+                                </a>
+                            @endif
+                        </div>
                         <div class="card-body">
+
+                            {{-- Alert belum ada PJ --}}
+                            @if(!$reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
+                                <div class="alert alert-warning py-2 d-flex align-items-center gap-2 mb-3">
+                                    <i class="bx bx-error-circle fs-5"></i>
+                                    <div>
+                                        <strong>Belum ada pegawai PJ.</strong><br>
+                                        <small>Klik <em>Assign Pegawai</em> untuk menentukan pegawai yang tersedia di jam ini.</small>
+                                    </div>
+                                </div>
+                            @endif
+
                             <p class="mb-2 text-muted small">Penanggung Jawab</p>
                             @if($reservasi->pegawaiPJ)
                                 <div class="d-flex align-items-center gap-2 mb-3">
@@ -161,14 +181,14 @@
                                         <small class="text-muted">
                                             Shift: {{ $reservasi->pegawaiPJ->shift->nama ?? '-' }}
                                             @if($reservasi->pegawaiPJ->shift)
-                                                ({{ \Carbon\Carbon::parse($reservasi->pegawaiPJ->shift->waktu_mulai)->format('H:i') }}
-                                                - {{ \Carbon\Carbon::parse($reservasi->pegawaiPJ->shift->waktu_selesai)->format('H:i') }})
+                                                ({{ substr($reservasi->pegawaiPJ->shift->waktu_mulai, 0, 5) }}
+                                                - {{ substr($reservasi->pegawaiPJ->shift->waktu_selesai, 0, 5) }})
                                             @endif
                                         </small>
                                     </div>
                                 </div>
                             @else
-                                <p class="text-muted">-</p>
+                                <p class="text-muted fst-italic">Belum ditentukan</p>
                             @endif
 
                             <p class="mb-2 text-muted small">Helper</p>

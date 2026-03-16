@@ -7,6 +7,7 @@ use App\Models\Reservasi;
 use App\Models\Pegawai;
 use App\Models\JenisLayanan;
 use App\Models\Shift;
+use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -130,9 +131,50 @@ class ReservasiController extends Controller
         return redirect()->route('admin.reservasi.index')->with('success', 'Reservasi berhasil diperbarui!');
     }
 
+    public function updateStatus(Request $request, Reservasi $reservasi)
+    {
+        $request->validate([
+            'status' => 'required|in:Menunggu,Dikonfirmasi,Berjalan,Selesai,Batal',
+        ]);
+
+        $newStatus = $request->status;
+
+        // Status selain Batal/Menunggu hanya bisa diproses jika pembayaran sudah Lunas
+        if (!in_array($newStatus, ['Menunggu', 'Batal']) && $reservasi->status_pembayaran !== 'Lunas') {
+            return back()->with('error', 'Status hanya bisa diubah ke "' . $newStatus . '" jika pembayaran sudah Lunas.');
+        }
+
+        $reservasi->update(['status' => $newStatus]);
+
+        return back()->with('success', 'Status reservasi berhasil diubah menjadi "' . $newStatus . '".');
+    }
+
     public function destroy(Reservasi $reservasi)
     {
         $reservasi->delete();
         return back()->with('success', 'Reservasi berhasil dihapus!');
+    }
+
+    /**
+     * AJAX: Kembalikan pegawai yang tersedia untuk tanggal, jam, dan layanan tertentu.
+     * Request: { tanggal, jam, layanan_ids[], exclude_id? }
+     * Response JSON: [{ id, nama, shift }, ...]
+     */
+    public function availablePegawai(Request $request)
+    {
+        $request->validate([
+            'tanggal'     => 'required|date',
+            'jam'         => 'required|date_format:H:i',
+            'layanan_ids' => 'required|array',
+        ]);
+
+        $pegawais = (new AvailabilityService())->getAvailablePegawaiForSlot(
+            $request->tanggal,
+            $request->jam,
+            $request->layanan_ids,
+            $request->input('exclude_id')
+        );
+
+        return response()->json($pegawais);
     }
 }

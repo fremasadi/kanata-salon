@@ -67,16 +67,33 @@
 
     {{-- Pegawai PJ --}}
     <div class="col-md-6">
-        <label for="pegawai_pj_id" class="form-label">Pegawai Penanggung Jawab</label>
+        <label for="pegawai_pj_id" class="form-label">
+            Pegawai Penanggung Jawab
+            <button type="button" id="btn-cek-pegawai" class="btn btn-sm btn-outline-secondary ms-2" title="Cek ketersediaan pegawai">
+                <i class="bx bx-refresh"></i> Cek Ketersediaan
+            </button>
+        </label>
+
+        {{-- Loading --}}
+        <div id="pj-loading" class="hidden d-none text-muted small py-1">
+            <span class="spinner-border spinner-border-sm"></span> Mengecek ketersediaan...
+        </div>
+
         <select name="pegawai_pj_id" id="pegawai_pj_id" class="form-select select2">
-            <option value="">-- Pilih Pegawai --</option>
+            <option value="">-- Pilih terlebih dahulu atau cek ketersediaan --</option>
             @foreach($pegawais as $pegawai)
-                <option value="{{ $pegawai->id }}">
-                    {{ $pegawai->user->name }} — Shift {{ $pegawai->shift->name }}
-                    ({{ $pegawai->shift->jam_mulai }} - {{ $pegawai->shift->jam_selesai }})
+                <option value="{{ $pegawai->id }}"
+                    {{ old('pegawai_pj_id', $reservasi->pegawai_pj_id ?? '') == $pegawai->id ? 'selected' : '' }}>
+                    {{ $pegawai->user->name }}
+                    @if($pegawai->shift)
+                        — Shift {{ $pegawai->shift->nama }}
+                        ({{ substr($pegawai->shift->waktu_mulai, 0, 5) }} - {{ substr($pegawai->shift->waktu_selesai, 0, 5) }})
+                    @endif
                 </option>
             @endforeach
         </select>
+
+        <small id="pj-info" class="text-muted d-block mt-1"></small>
     </div>
 
 
@@ -211,6 +228,62 @@ $(document).ready(function() {
     });
     $('#pegawai_helper_id').on('change', function() {
         showShiftInfo('#pegawai_helper_id', '#info_shift_helper');
+    });
+
+    // ---- Cek Ketersediaan Pegawai PJ ----
+    function fetchAvailablePegawai() {
+        const tanggal    = $('input[name="tanggal"]').val();
+        const jam        = $('input[name="jam"]').val();
+        const layananIds = $('#layanan_id').val();
+        const excludeId  = {{ isset($reservasi) ? $reservasi->id : 'null' }};
+
+        if (!tanggal || !jam || !layananIds || layananIds.length === 0) {
+            $('#pj-info').text('Isi tanggal, jam, dan layanan terlebih dahulu.').addClass('text-warning').removeClass('text-muted text-success text-danger');
+            return;
+        }
+
+        $('#pj-loading').removeClass('d-none');
+        $('#pj-info').text('');
+
+        $.ajax({
+            url: '{{ route('admin.reservasi.available-pegawai') }}',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            contentType: 'application/json',
+            data: JSON.stringify({ tanggal, jam, layanan_ids: layananIds, exclude_id: excludeId }),
+            success: function(data) {
+                $('#pj-loading').addClass('d-none');
+
+                const currentVal = $('#pegawai_pj_id').val();
+                $('#pegawai_pj_id').empty().append('<option value="">-- Pilih Pegawai --</option>');
+
+                if (data.length === 0) {
+                    $('#pj-info').text('Tidak ada pegawai tersedia di jam dan tanggal ini.').addClass('text-danger').removeClass('text-muted text-warning text-success');
+                    return;
+                }
+
+                data.forEach(function(p) {
+                    const selected = currentVal == p.id ? 'selected' : '';
+                    $('#pegawai_pj_id').append(`<option value="${p.id}" ${selected}>${p.nama} — ${p.shift}</option>`);
+                });
+
+                $('#pegawai_pj_id').trigger('change.select2');
+                $('#pj-info').text(data.length + ' pegawai tersedia.').addClass('text-success').removeClass('text-muted text-warning text-danger');
+            },
+            error: function() {
+                $('#pj-loading').addClass('d-none');
+                $('#pj-info').text('Gagal mengecek ketersediaan.').addClass('text-danger').removeClass('text-muted text-warning text-success');
+            }
+        });
+    }
+
+    $('#btn-cek-pegawai').on('click', fetchAvailablePegawai);
+
+    // Auto-cek saat tanggal atau jam berubah
+    $('input[name="tanggal"], input[name="jam"]').on('change', function() {
+        if ($('input[name="tanggal"]').val() && $('input[name="jam"]').val()) {
+            fetchAvailablePegawai();
+        }
     });
 
     // Trigger awal

@@ -63,22 +63,48 @@ public function create($reservasiId)
         return back()->with('error', 'Layanan tidak ditemukan');
     }
     
-    $itemDetails = [];
-    foreach ($layananItems as $layanan) {
-        $quantity = $layananCount[$layanan->id] ?? 1; // Get quantity dari cart
-        
-        $itemDetails[] = [
-            'id' => $layanan->id,
-            'price' => (int) $layanan->harga,
-            'quantity' => $quantity, // ✅ Gunakan quantity yang benar
-            'name' => $layanan->name,
-        ];
+    $grossAmount = (int) $reservasi->jumlah_pembayaran;
+    $totalHarga  = (int) $reservasi->total_harga;
+
+    // Midtrans requires sum(price * qty) == gross_amount exactly.
+    // When paying DP, itemDetails must reflect the DP amount, not full prices.
+    if ($grossAmount < $totalHarga) {
+        // DP payment — single line item for the deposit
+        $itemDetails = [[
+            'id'       => 'DP-' . $reservasi->id,
+            'price'    => $grossAmount,
+            'quantity' => 1,
+            'name'     => 'DP Reservasi #' . $reservasi->id,
+        ]];
+    } else {
+        // Full payment — use actual layanan items
+        $itemDetails = [];
+        foreach ($layananItems as $layanan) {
+            $quantity = $layananCount[$layanan->id] ?? 1;
+            $itemDetails[] = [
+                'id'       => $layanan->id,
+                'price'    => (int) $layanan->harga,
+                'quantity' => $quantity,
+                'name'     => $layanan->name,
+            ];
+        }
+
+        // If item total doesn't exactly match gross_amount (e.g. due to harga_max), adjust
+        $itemTotal = array_sum(array_map(fn($i) => $i['price'] * $i['quantity'], $itemDetails));
+        if ($itemTotal !== $grossAmount) {
+            $itemDetails = [[
+                'id'       => 'RESERVASI-' . $reservasi->id,
+                'price'    => $grossAmount,
+                'quantity' => 1,
+                'name'     => 'Pembayaran Reservasi #' . $reservasi->id,
+            ]];
+        }
     }
 
     // Create transaction
     $result = $this->midtrans->createTransaction(
         $orderId,
-        (int) $reservasi->jumlah_pembayaran,
+        $grossAmount,
         $customerDetails,
         $itemDetails
     );
@@ -196,10 +222,13 @@ public function create($reservasiId)
         // Settlement time
         if ($transactionStatus === 'settlement' || $transactionStatus === 'capture') {
             $updateData['settlement_time'] = now();
-            
-            // Update reservasi status pembayaran
-            $pembayaran->reservasi->update([
-                'status_pembayaran' => 'DP',
+
+            $reservasi       = $pembayaran->reservasi;
+            $isPaidInFull    = (int) $pembayaran->gross_amount >= (int) $reservasi->total_harga;
+            $newStatusBayar  = $isPaidInFull ? 'Lunas' : 'DP';
+
+            $reservasi->update([
+                'status_pembayaran' => $newStatusBayar,
                 'jumlah_pembayaran' => $pembayaran->gross_amount,
             ]);
         }

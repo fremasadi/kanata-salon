@@ -42,6 +42,20 @@
             </div>
         </div>
 
+        {{-- Alert --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible mx-3 mt-2">
+                <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible mx-3 mt-2">
+                <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         {{-- Tabel --}}
         <div class="card">
             <div class="card-body table-responsive">
@@ -54,6 +68,7 @@
                             <th>Jam</th>
                             <th>Jenis</th>
                             <th>Status</th>
+                            <th>Pembayaran</th>
                             <th>Total Harga</th>
                             <th>PJ</th>
                             <th>Aksi</th>
@@ -77,25 +92,47 @@
                                         {{ $reservasi->status }}
                                     </span>
                                 </td>
+                                <td>
+                                    <span class="badge {{ $reservasi->status_pembayaran == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                        {{ $reservasi->status_pembayaran }}
+                                    </span>
+                                </td>
                                 <td>Rp {{ number_format($reservasi->total_harga, 0, ',', '.') }}</td>
                                 <td>{{ $reservasi->pegawaiPJ->user->name ?? '-' }}</td>
                                 <td>
+                                    {{-- Dropdown ubah status (hanya jika belum Selesai/Batal) --}}
+                                    @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
+                                        <form action="{{ route('admin.reservasi.update-status', $reservasi->id) }}"
+                                              method="POST" class="d-inline-flex gap-1 align-items-center mb-1">
+                                            @csrf @method('PATCH')
+                                            <select name="status"
+                                                    class="form-select form-select-sm"
+                                                    style="min-width:125px;"
+                                                    onchange="this.form.submit()">
+                                                @foreach(['Menunggu','Dikonfirmasi','Berjalan','Selesai','Batal'] as $st)
+                                                    <option value="{{ $st }}"
+                                                        {{ $reservasi->status == $st ? 'selected' : '' }}
+                                                        @if(!in_array($st, ['Menunggu','Batal']) && $reservasi->status_pembayaran !== 'Lunas')
+                                                            disabled title="Pembayaran belum Lunas"
+                                                        @endif>
+                                                        {{ $st }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </form>
+                                    @endif
+
                                     <a href="{{ route('admin.reservasi.show', $reservasi->id) }}" class="btn btn-sm btn-outline-info">
                                         <i class="bx bx-show"></i>
                                     </a>
                                     <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="bx bx-edit"></i>
                                     </a>
-                                    <!-- <form action="{{ route('admin.reservasi.destroy', $reservasi->id) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('Yakin ingin menghapus reservasi ini?')">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
-                                    </form> -->
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted">Tidak ada data reservasi.</td>
+                                <td colspan="10" class="text-center text-muted">Tidak ada data reservasi.</td>
                             </tr>
                         @endforelse
                     </tbody>

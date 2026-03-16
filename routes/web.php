@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\JenisLayananController;
+use App\Http\Controllers\Admin\JenisController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\PegawaiController;
 use App\Http\Controllers\Admin\GajiController;
@@ -13,16 +14,20 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Front\CheckoutController;
 
 Route::get('/', [FrontController::class, 'index'])->name('landing');
+Route::get('/layanan/{id}', [FrontController::class, 'show'])->name('layanan.show');
 
 Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('user', UserController::class)->names('user');
+        Route::resource('jenis', JenisController::class)->names('jenis');
         Route::resource('jenis-layanan', JenisLayananController::class)->names('jenis-layanan');
         Route::resource('shift', ShiftController::class)->names('shift');
         Route::resource('pegawai', PegawaiController::class);
         Route::resource('komisi', \App\Http\Controllers\Admin\KomisiController::class)->only(['index']);
         Route::get('gaji', [GajiController::class, 'index'])->name('gaji.index');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
+        Route::post('reservasi/available-pegawai', [\App\Http\Controllers\Admin\ReservasiController::class, 'availablePegawai'])->name('reservasi.available-pegawai');
+        Route::patch('reservasi/{reservasi}/update-status', [\App\Http\Controllers\Admin\ReservasiController::class, 'updateStatus'])->name('reservasi.update-status');
         Route::resource('reservasi', \App\Http\Controllers\Admin\ReservasiController::class);
 
     });
@@ -44,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
     // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::post('/checkout/available-slots', [CheckoutController::class, 'availableSlots'])->name('checkout.available-slots');
     
     // Payment
     Route::get('/payment/create/{reservasiId}', [PaymentController::class, 'create'])->name('payment.create');
@@ -52,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/history', [App\Http\Controllers\Front\HistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{id}', [App\Http\Controllers\Front\HistoryController::class, 'show'])->name('history.show');
+    Route::post('/history/{id}/review', [App\Http\Controllers\Front\ReviewController::class, 'store'])->name('review.store');
 
 });
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');

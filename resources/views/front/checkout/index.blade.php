@@ -50,27 +50,54 @@
                             <!-- Tanggal -->
                             <div>
                                 <label class="block text-gray-700 font-semibold mb-2">Tanggal Reservasi <span class="text-red-500">*</span></label>
-                                <input type="date" name="tanggal" 
+                                <input type="date" name="tanggal" id="input-tanggal"
                                     value="{{ old('tanggal') }}"
                                     min="{{ date('Y-m-d') }}"
-                                    required 
+                                    required
                                     class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#EC008C] focus:border-transparent @error('tanggal') border-red-500 @enderror">
                                 @error('tanggal')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <!-- Jam -->
+                            <!-- Jam (slot dinamis) -->
                             <div>
                                 <label class="block text-gray-700 font-semibold mb-2">Jam Reservasi <span class="text-red-500">*</span></label>
-                                <select name="jam" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#EC008C] focus:border-transparent @error('jam') border-red-500 @enderror">
-                                    <option value="">Pilih Jam</option>
-                                    @for($i = 9; $i <= 20; $i++)
-                                        <option value="{{ sprintf('%02d:00', $i) }}" {{ old('jam') == sprintf('%02d:00', $i) ? 'selected' : '' }}>
-                                            {{ sprintf('%02d:00', $i) }}
-                                        </option>
-                                    @endfor
-                                </select>
+
+                                {{-- Loading indicator --}}
+                                <div id="slot-loading" class="hidden flex items-center gap-2 text-gray-500 text-sm py-2">
+                                    <svg class="animate-spin w-4 h-4 text-[#EC008C]" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    Mengecek ketersediaan slot...
+                                </div>
+
+                                {{-- Slot tersedia --}}
+                                <div id="slot-available" class="hidden">
+                                    <select name="jam" id="select-jam" required
+                                        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#EC008C] focus:border-transparent @error('jam') border-red-500 @enderror">
+                                        <option value="">-- Pilih Jam --</option>
+                                    </select>
+                                    <p id="slot-durasi-info" class="text-xs text-gray-500 mt-1"></p>
+                                </div>
+
+                                {{-- Tidak ada slot --}}
+                                <div id="slot-empty" class="hidden bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 text-yellow-800">
+                                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="font-semibold text-sm">Tidak ada slot tersedia pada tanggal ini.</span>
+                                    </div>
+                                    <p class="text-xs text-yellow-700 mt-1 ml-7">Coba pilih tanggal lain atau kurangi layanan agar durasinya lebih pendek.</p>
+                                </div>
+
+                                {{-- Placeholder sebelum tanggal dipilih --}}
+                                <div id="slot-placeholder" class="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-400 text-sm text-center">
+                                    Pilih tanggal terlebih dahulu
+                                </div>
+
                                 @error('jam')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -157,8 +184,9 @@
                         <div class="space-y-3 mb-6">
                             @foreach($cartItems as $item)
                                 <div class="flex gap-3 pb-3 border-b">
-                                    @if($item['image'])
-                                        <img src="{{ Storage::url($item['image']) }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg">
+                                    @php $firstImg = is_array($item['image']) ? ($item['image'][0] ?? null) : $item['image']; @endphp
+                                    @if($firstImg)
+                                        <img src="{{ Storage::url($firstImg) }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg">
                                     @else
                                         <div class="w-16 h-16 bg-gradient-to-br from-[#EC008C] to-[#D4006F] rounded-lg flex items-center justify-center flex-shrink-0">
                                             <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -221,6 +249,76 @@
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
     }
+
+    // ---- Slot Availability ----
+    const elLoading     = document.getElementById('slot-loading');
+    const elAvailable   = document.getElementById('slot-available');
+    const elEmpty       = document.getElementById('slot-empty');
+    const elPlaceholder = document.getElementById('slot-placeholder');
+    const elSelect      = document.getElementById('select-jam');
+    const elDurasi      = document.getElementById('slot-durasi-info');
+
+    function showSlotState(state) {
+        elLoading.classList.add('hidden');
+        elAvailable.classList.add('hidden');
+        elEmpty.classList.add('hidden');
+        elPlaceholder.classList.add('hidden');
+
+        if (state === 'loading')     elLoading.classList.remove('hidden');
+        if (state === 'available')   elAvailable.classList.remove('hidden');
+        if (state === 'empty')       elEmpty.classList.remove('hidden');
+        if (state === 'placeholder') elPlaceholder.classList.remove('hidden');
+    }
+
+    function fetchSlots(tanggal) {
+        showSlotState('loading');
+        elSelect.required = false;
+
+        fetch('{{ route('checkout.available-slots') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    ?? '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ tanggal })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.slots || data.slots.length === 0) {
+                showSlotState('empty');
+                return;
+            }
+
+            elSelect.innerHTML = '<option value="">-- Pilih Jam --</option>';
+            data.slots.forEach(slot => {
+                const opt = document.createElement('option');
+                opt.value = slot;
+                opt.textContent = slot;
+                elSelect.appendChild(opt);
+            });
+
+            elDurasi.textContent = 'Total durasi layanan Anda: ' + data.total_durasi + ' menit';
+            elSelect.required = true;
+            showSlotState('available');
+
+            const oldJam = '{{ old('jam') }}';
+            if (oldJam) elSelect.value = oldJam;
+        })
+        .catch(() => {
+            showSlotState('empty');
+            showNotification('Gagal mengecek ketersediaan slot.', 'error');
+        });
+    }
+
+    document.getElementById('input-tanggal').addEventListener('change', function () {
+        if (this.value) fetchSlots(this.value);
+        else showSlotState('placeholder');
+    });
+
+    const existingTanggal = document.getElementById('input-tanggal').value;
+    if (existingTanggal) fetchSlots(existingTanggal);
+    else showSlotState('placeholder');
 </script>
 @endpush
 @endsection

@@ -22,11 +22,19 @@
                 <span class="menu-header-text">Data Master</span>
             </li>
 
+            {{-- Jenis --}}
+            <li class="menu-item {{ request()->routeIs('admin.jenis.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.jenis.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                    <div>Jenis</div>
+                </a>
+            </li>
+
             {{-- Jenis Layanan --}}
             <li class="menu-item {{ request()->routeIs('admin.jenis-layanan.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.jenis-layanan.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-cut"></i>
-                    <div>Jenis Layanan</div>
+                    <div> Layanan</div>
                 </a>
             </li>
 
