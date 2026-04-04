@@ -119,7 +119,7 @@
         </div>
 
         {{-- Layanan Lainnya --}}
-        @if($lainnya->count() > 0)
+        {{-- @if($lainnya->count() > 0)
             <div class="mt-14">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Layanan Lainnya</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -148,7 +148,7 @@
                     @endforeach
                 </div>
             </div>
-        @endif
+        @endif --}}
 
     </div>
 </div>
