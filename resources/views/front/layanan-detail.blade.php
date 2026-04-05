@@ -118,37 +118,6 @@
             </div>
         </div>
 
-        {{-- Layanan Lainnya --}}
-        {{-- @if($lainnya->count() > 0)
-            <div class="mt-14">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Layanan Lainnya</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    @foreach($lainnya as $item)
-                        <a href="{{ route('layanan.show', $item->id) }}"
-                           class="block bg-white rounded-2xl shadow hover:shadow-lg overflow-hidden transition duration-300 transform hover:-translate-y-1">
-                            @if($item->first_image_url)
-                                <img src="{{ $item->first_image_url }}" alt="{{ $item->name }}" class="w-full h-40 object-cover">
-                            @else
-                                <div class="w-full h-40 bg-gradient-to-br from-[#EC008C] to-[#D4006F] flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                            @endif
-                            <div class="p-4">
-                                <h4 class="font-bold text-gray-800 mb-1">{{ $item->name }}</h4>
-                                <p class="text-sm text-[#EC008C] font-semibold">
-                                    Rp {{ number_format($item->harga, 0, ',', '.') }}
-                                    @if($item->harga_max && $item->harga_max > $item->harga)
-                                        - Rp {{ number_format($item->harga_max, 0, ',', '.') }}
-                                    @endif
-                                </p>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif --}}
 
     </div>
 </div>
