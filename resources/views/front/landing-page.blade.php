@@ -223,15 +223,15 @@
                         <div class="text-gray-600">Tahun Pengalaman</div>
                     </div>
                     <div class="text-center p-6 bg-gradient-to-br from-yellow-50 to-white rounded-2xl">
-                        <div class="text-4xl font-bold text-[#C9A961] mb-2">5000+</div>
+                        <div class="text-4xl font-bold text-[#C9A961] mb-2">{{ $statReviews }}</div>
                         <div class="text-gray-600">Pelanggan Puas</div>
                     </div>
                     <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-white rounded-2xl">
-                        <div class="text-4xl font-bold text-purple-600 mb-2">15+</div>
+                        <div class="text-4xl font-bold text-purple-600 mb-2">{{ $statStylist }}</div>
                         <div class="text-gray-600">Stylist Profesional</div>
                     </div>
                     <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-white rounded-2xl">
-                        <div class="text-4xl font-bold text-blue-600 mb-2">20+</div>
+                        <div class="text-4xl font-bold text-blue-600 mb-2">{{ $statLayanan }}</div>
                         <div class="text-gray-600">Jenis Layanan</div>
                     </div>
                 </div>
@@ -247,67 +247,58 @@
             <h2 class="text-4xl md:text-5xl font-bold mb-4">
                 Apa Kata <span class="text-[#C9A961]">Mereka</span>
             </h2>
-            <p class="text-xl text-white/90">Testimoni pelanggan setia kami</p>
+            <p class="text-xl text-white/90">Ulasan nyata dari pelanggan kami</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
-                <div class="flex items-center mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-[#EC008C] to-[#D4006F] rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4">
-                        S
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg">Sarah Wijaya</h4>
-                        <div class="flex text-[#C9A961]">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+        @if($reviews->count() > 0)
+            @php
+                $starSvg = '<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>';
+                $avatarColors = [
+                    'from-pink-500 to-rose-400',
+                    'from-amber-400 to-yellow-300',
+                    'from-purple-500 to-pink-400',
+                    'from-teal-400 to-cyan-300',
+                    'from-indigo-500 to-blue-400',
+                    'from-orange-400 to-red-400',
+                ];
+            @endphp
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($reviews as $i => $review)
+                    @php $color = $avatarColors[$i % count($avatarColors)]; @endphp
+                    <div class="bg-white text-gray-800 p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                        {{-- Header: avatar + nama + layanan --}}
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br {{ $color }} rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                                {{ strtoupper(mb_substr($review->user->name ?? 'U', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-gray-800 truncate">{{ $review->user->name ?? 'Pelanggan' }}</h4>
+                                <p class="text-xs text-[#EC008C] font-medium truncate">{{ $review->jenisLayanan->name ?? '' }}</p>
+                                {{-- Bintang --}}
+                                <div class="flex mt-1">
+                                    @for($s = 1; $s <= 5; $s++)
+                                        <svg class="w-4 h-4 {{ $s <= $review->rating ? 'text-[#C9A961]' : 'text-gray-200' }}" fill="currentColor" viewBox="0 0 20 20">{!! $starSvg !!}</svg>
+                                    @endfor
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"Pelayanan sangat memuaskan! Stylistnya profesional dan hasilnya sesuai harapan. Pasti akan kembali lagi!"</p>
-            </div>
 
-            <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
-                <div class="flex items-center mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-[#C9A961] to-[#E6D5A8] rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4">
-                        D
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg">Dina Permata</h4>
-                        <div class="flex text-[#C9A961]">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"Suasana salon nyaman dan bersih. Produk yang digunakan berkualitas. Recommended banget!"</p>
-            </div>
+                        {{-- Komentar --}}
+                        <p class="text-gray-600 italic text-sm leading-relaxed flex-1">"{{ $review->komentar }}"</p>
 
-            <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl">
-                <div class="flex items-center mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4">
-                        A
+                        {{-- Tanggal --}}
+                        <p class="text-xs text-gray-400">{{ $review->created_at->translatedFormat('d F Y') }}</p>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-lg">Amanda Putri</h4>
-                        <div class="flex text-[#C9A961]">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"Sistem booking online-nya memudahkan! Tidak perlu antri lama. Pelayanannya juga ramah."</p>
+                @endforeach
             </div>
-        </div>
+        @else
+            <div class="text-center text-white/70 py-8">
+                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <p class="text-lg">Belum ada ulasan. Jadilah yang pertama!</p>
+            </div>
+        @endif
     </div>
 </section>
 
