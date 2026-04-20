@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Batalkan otomatis reservasi yang tanggalnya sudah lewat, setiap hari tengah malam
-Schedule::command('reservasi:auto-batal')->dailyAt('00:05');
+Schedule::command('reservasi:auto-batal')->everyMinute();
