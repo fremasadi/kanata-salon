@@ -138,10 +138,10 @@
                                     @php
                                         $methods = [
                                             'tunai'         => ['label' => 'Tunai',         'icon' => 'bx-money'],
-                                            'bank_transfer' => ['label' => 'Transfer Bank', 'icon' => 'bx-building-house'],
+                                            // 'bank_transfer' => ['label' => 'Transfer Bank', 'icon' => 'bx-building-house'],
                                             'qris'          => ['label' => 'QRIS',          'icon' => 'bx-qr'],
-                                            'gopay'         => ['label' => 'GoPay',         'icon' => 'bx-wallet'],
-                                            'shopeepay'     => ['label' => 'ShopeePay',     'icon' => 'bx-wallet-alt'],
+                                            // 'gopay'         => ['label' => 'GoPay',         'icon' => 'bx-wallet'],
+                                            // 'shopeepay'     => ['label' => 'ShopeePay',     'icon' => 'bx-wallet-alt'],
                                         ];
                                     @endphp
                                     @foreach($methods as $value => $method)
