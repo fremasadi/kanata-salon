@@ -67,8 +67,8 @@
                 </table>
 
                 {{-- Pagination --}}
-                <div class="mt-3">
-                    {{ $shifts->links() }}
+                <div class="mt-3 d-flex justify-content-center">
+                    {{ $shifts->links('pagination::bootstrap-5') }}
                 </div>
             </div>
         </div>

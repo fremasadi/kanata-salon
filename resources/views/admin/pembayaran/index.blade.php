@@ -142,7 +142,7 @@
             </table>
 
             <div class="px-3 mt-3">
-                {{ $pembayarans->links() }}
+                {{ $pembayarans->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>

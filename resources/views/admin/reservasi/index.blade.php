@@ -168,8 +168,8 @@
                     </tbody>
                 </table>
 
-                <div class="mt-3">
-                    {{ $reservasis->links() }}
+                <div class="mt-3 d-flex justify-content-center">
+                    {{ $reservasis->links('pagination::bootstrap-5') }}
                 </div>
             </div>
         </div>

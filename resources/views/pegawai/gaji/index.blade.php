@@ -56,8 +56,8 @@
                 </div>
 
                 {{-- Pagination --}}
-                <div class="mt-3">
-                    {{ $gajis->links() }}
+                <div class="mt-3 d-flex justify-content-center">
+                    {{ $gajis->links('pagination::bootstrap-5') }}
                 </div>
             @endif
         </div>

@@ -46,8 +46,8 @@
                 </div>
 
                 {{-- Pagination --}}
-                <div class="mt-3">
-                    {{ $komisis->links() }}
+                <div class="mt-3 d-flex justify-content-center">
+                    {{ $komisis->links('pagination::bootstrap-5') }}
                 </div>
             @endif
         </div>

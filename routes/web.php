@@ -19,7 +19,7 @@ Route::get('/layanan/{id}', [FrontController::class, 'show'])->name('layanan.sho
 Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('user', UserController::class)->names('user');
-        Route::resource('jenis', JenisController::class)->names('jenis');
+        Route::resource('jenis', JenisController::class)->names('jenis')->parameters(['jenis' => 'jenis']);
         Route::resource('jenis-layanan', JenisLayananController::class)->names('jenis-layanan');
         Route::resource('shift', ShiftController::class)->names('shift');
         Route::resource('pegawai', PegawaiController::class);
