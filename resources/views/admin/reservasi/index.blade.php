@@ -85,6 +85,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
+                            <th>ID</th>
                             <th>Pelanggan</th>
                             <th>Tanggal</th>
                             <th>Jam</th>
@@ -100,6 +101,7 @@
                         @forelse($reservasis as $reservasi)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
+                                <td><span class="text-muted small">#{{ $reservasi->id }}</span></td>
                                 <td>{{ $reservasi->name_pelanggan }}</td>
                                 <td>{{ \Carbon\Carbon::parse($reservasi->tanggal)->format('d M Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($reservasi->jam)->format('H:i') }}</td>
@@ -160,7 +162,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted">Tidak ada data reservasi.</td>
+                                <td colspan="11" class="text-center text-muted">Tidak ada data reservasi.</td>
                             </tr>
                         @endforelse
                     </tbody>
