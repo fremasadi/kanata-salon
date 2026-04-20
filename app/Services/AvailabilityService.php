@@ -33,7 +33,7 @@ class AvailabilityService
         }
 
         $reservasiAktif = Reservasi::where('tanggal', $tanggal)
-            ->whereNotIn('status', ['Batal'])
+            ->whereNotIn('status', ['Batal', 'Selesai'])
             ->whereNotNull('pegawai_pj_id')
             ->get();
 
@@ -96,7 +96,7 @@ class AvailabilityService
         $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
 
         $query = Reservasi::where('tanggal', $tanggal)
-            ->whereNotIn('status', ['Batal'])
+            ->whereNotIn('status', ['Batal', 'Selesai'])
             ->whereNotNull('pegawai_pj_id');
 
         if ($excludeId) {
