@@ -76,18 +76,9 @@ class AvailabilityService
 
         $hari = Pegawai::hariDariTanggal($tanggal);
 
-        $uniqueLayananIds = array_unique($layananIds);
-
         $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
             ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
-            ->get()
-            ->filter(function ($pegawai) use ($uniqueLayananIds) {
-                $milik = $pegawai->layanan_id ?? [];
-                foreach ($uniqueLayananIds as $id) {
-                    if (!\in_array($id, $milik)) return false;
-                }
-                return true;
-            });
+            ->get();
 
         if ($pegawais->isEmpty()) return [];
 
