@@ -36,6 +36,11 @@ class Reservasi extends Model
         return $this->hasOne(Pembayaran::class);
     }
 
+    public function komisis()
+    {
+        return $this->hasMany(Komisi::class, 'reservasi_id');
+    }
+
     public function reviews()
     {
         return $this->hasMany(Review::class);

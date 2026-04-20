@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Komisi;
 use App\Models\Reservasi;
 use App\Models\Pegawai;
 use App\Models\JenisLayanan;
@@ -205,6 +206,8 @@ class ReservasiController extends Controller
             'status'            => 'Selesai',
         ]);
 
+        $this->generateKomisi($reservasi->fresh(), $totalFinal);
+
         return redirect()
             ->route('admin.reservasi.show', $reservasi->id)
             ->with('success', 'Pelunasan berhasil! Sisa tagihan Rp ' . number_format($sisaTagihan, 0, ',', '.') . ' telah diterima. Reservasi ditandai Selesai.');
@@ -289,6 +292,8 @@ class ReservasiController extends Controller
             'status_pembayaran' => 'Lunas',
             'status'            => 'Selesai',
         ]);
+
+        $this->generateKomisi($reservasi->fresh(), $reservasi->total_harga);
 
         return redirect()
             ->route('admin.reservasi.show', $reservasi->id)
@@ -397,5 +402,33 @@ class ReservasiController extends Controller
         );
 
         return response()->json($pegawais);
+    }
+
+    private function generateKomisi(Reservasi $reservasi, float $totalHarga): void
+    {
+        // Hindari duplikat jika komisi sudah pernah dibuat
+        if (Komisi::where('reservasi_id', $reservasi->id)->exists()) return;
+
+        // PJ: 10%
+        if ($reservasi->pegawai_pj_id) {
+            Komisi::create([
+                'reservasi_id' => $reservasi->id,
+                'pegawai_id'   => $reservasi->pegawai_pj_id,
+                'peran'        => 'PJ',
+                'persentase'   => 10,
+                'jumlah'       => round($totalHarga * 0.10),
+            ]);
+        }
+
+        // Helper: 3% masing-masing
+        foreach ($reservasi->pegawai_helper_id ?? [] as $helperId) {
+            Komisi::create([
+                'reservasi_id' => $reservasi->id,
+                'pegawai_id'   => $helperId,
+                'peran'        => 'Helper',
+                'persentase'   => 3,
+                'jumlah'       => round($totalHarga * 0.03),
+            ]);
+        }
     }
 }

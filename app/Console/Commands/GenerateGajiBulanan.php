@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Pegawai;
 use App\Models\Gaji;
+use App\Models\Komisi;
 use Carbon\Carbon;
 
 class GenerateGajiBulanan extends Command
@@ -14,51 +15,58 @@ class GenerateGajiBulanan extends Command
 
     public function handle()
     {
-        $today = Carbon::today();
+        $today        = Carbon::today();
+        $periodeMulai = $today->copy()->startOfMonth();
+        $periodeSelesai = $today->copy()->endOfMonth();
+        $gajiPokok    = 1200000;
 
-        // Ambil semua pegawai aktif
         $pegawais = Pegawai::all();
 
         foreach ($pegawais as $pegawai) {
-            // Cek apakah pegawai sudah punya gaji aktif untuk periode ini
-            $gajiAktif = Gaji::where('pegawai_id', $pegawai->id)
-                ->whereDate('periode_mulai', '<=', $today)
-                ->whereDate('periode_selesai', '>=', $today)
+            // Hitung total komisi bulan ini dari tabel komisis
+            $totalKomisi = Komisi::where('pegawai_id', $pegawai->id)
+                ->whereHas('reservasi', function ($q) use ($periodeMulai, $periodeSelesai) {
+                    $q->whereBetween('tanggal', [$periodeMulai, $periodeSelesai])
+                      ->where('status', 'Selesai');
+                })
+                ->sum('jumlah');
+
+            $totalGaji = $gajiPokok + $totalKomisi;
+
+            $gaji = Gaji::where('pegawai_id', $pegawai->id)
+                ->whereDate('periode_mulai', $periodeMulai)
                 ->first();
 
-            if (!$gajiAktif) {
-                // Hitung periode
-                $periodeMulai = $today;
-                $periodeSelesai = $today->copy()->addMonth();
-
-                // Nilai awal gaji
-                $gajiPokok = 1200000; // Gaji pokok awal (Rp 1.200.000)
-                $totalKomisi = 0;
-                $totalGaji = $gajiPokok + $totalKomisi;
-
-                // Buat entri gaji baru
+            if (!$gaji) {
                 Gaji::create([
-                    'pegawai_id' => $pegawai->id,
-                    'periode_mulai' => $periodeMulai,
+                    'pegawai_id'      => $pegawai->id,
+                    'periode_mulai'   => $periodeMulai,
                     'periode_selesai' => $periodeSelesai,
-                    'gaji_pokok' => $gajiPokok,
-                    'total_komisi' => $totalKomisi,
-                    'total_gaji' => $totalGaji,
-                    'status' => 'Draft',
+                    'gaji_pokok'      => $gajiPokok,
+                    'total_komisi'    => $totalKomisi,
+                    'total_gaji'      => $totalGaji,
+                    'status'          => 'Draft',
                 ]);
 
-                $this->info("✅ Gaji baru dibuat untuk Pegawai ID {$pegawai->id} 
-                    ({$periodeMulai->format('d M Y')} - {$periodeSelesai->format('d M Y')}) 
-                    Gaji Pokok: Rp " . number_format($gajiPokok, 0, ',', '.'));
+                $this->info("✅ Gaji baru: Pegawai #{$pegawai->id} | Komisi: Rp " . number_format($totalKomisi, 0, ',', '.'));
+            } else {
+                // Update komisi & total jika record sudah ada dan masih Draft
+                if ($gaji->status === 'Draft') {
+                    $gaji->update([
+                        'total_komisi' => $totalKomisi,
+                        'total_gaji'   => $gajiPokok + $totalKomisi,
+                    ]);
+                    $this->info("🔄 Gaji diperbarui: Pegawai #{$pegawai->id} | Komisi: Rp " . number_format($totalKomisi, 0, ',', '.'));
+                }
             }
         }
 
-        // Tandai periode lama yang sudah lewat sebagai "Dibayar"
+        // Tandai gaji bulan lalu yang masih Draft → Dibayar
         Gaji::whereDate('periode_selesai', '<', $today)
             ->where('status', 'Draft')
             ->update([
-                'status' => 'Dibayar',
-                'tanggal_dibayar' => $today
+                'status'         => 'Dibayar',
+                'tanggal_dibayar' => $today,
             ]);
 
         $this->info('💰 Proses generate gaji bulanan selesai!');
