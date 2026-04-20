@@ -13,7 +13,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if ($user->role === 'admin') {
             return $this->adminDashboard();
@@ -75,7 +75,7 @@ class DashboardController extends Controller
 
     private function pegawaiDashboard()
     {
-        $user    = Auth::user();
+        $user    = auth()->user();
         $pegawai = Pegawai::where('user_id', $user->id)->first();
         $today   = Carbon::today();
         $bulanMulai = $today->copy()->startOfMonth();
