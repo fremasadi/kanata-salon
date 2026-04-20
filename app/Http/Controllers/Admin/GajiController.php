@@ -24,7 +24,7 @@ class GajiController extends Controller
             $query->where('status', $request->status);
         }
 
-        $gajis = $query->latest()->paginate(10);
+        $gajis = $query->orderBy('periode_mulai', 'desc')->paginate(10);
 
         return view('admin.gaji.index', compact('gajis', 'pegawais'));
     }
