@@ -176,18 +176,33 @@ class ReservasiController extends Controller
         );
 
         $request->validate([
-            'harga_final'   => 'required|array',
-            'harga_final.*' => 'required|numeric|min:0',
+            'harga_final'    => 'required|array',
+            'harga_final.*'  => 'required|numeric|min:0',
+            'payment_type'   => 'required|in:tunai,bank_transfer,qris,gopay,shopeepay',
+            'notes'          => 'nullable|string|max:255',
         ]);
 
-        $totalFinal = array_sum($request->harga_final);
+        $totalFinal  = array_sum($request->harga_final);
         $sisaTagihan = $totalFinal - $reservasi->jumlah_pembayaran;
 
+        // Simpan record pelunasan ke tabel pembayarans
+        \App\Models\Pembayaran::create([
+            'reservasi_id'       => $reservasi->id,
+            'type'               => 'pelunasan',
+            'order_id'           => 'PLN-' . $reservasi->id . '-' . now()->format('YmdHis'),
+            'gross_amount'       => $sisaTagihan > 0 ? $sisaTagihan : 0,
+            'payment_type'       => $request->payment_type,
+            'transaction_status' => 'settlement',
+            'transaction_time'   => now(),
+            'settlement_time'    => now(),
+            'notes'              => $request->notes,
+        ]);
+
         $reservasi->update([
-            'total_harga'        => $totalFinal,
-            'jumlah_pembayaran'  => $totalFinal,
-            'status_pembayaran'  => 'Lunas',
-            'status'             => 'Selesai',
+            'total_harga'       => $totalFinal,
+            'jumlah_pembayaran' => $totalFinal,
+            'status_pembayaran' => 'Lunas',
+            'status'            => 'Selesai',
         ]);
 
         return redirect()
@@ -230,20 +245,62 @@ class ReservasiController extends Controller
             ->with('success', 'Layanan dimulai! PJ dan Helper telah ditetapkan.');
     }
 
-    public function tandaiSelesai(Reservasi $reservasi)
+    public function showSelesaiBayar(Reservasi $reservasi)
     {
         abort_if(
-            $reservasi->status !== 'Berjalan' || $reservasi->status_pembayaran !== 'Lunas',
+            $reservasi->status !== 'Berjalan',
             403,
-            'Hanya reservasi yang sedang Berjalan dan sudah Lunas yang dapat ditandai Selesai.'
+            'Hanya reservasi yang sedang Berjalan yang dapat diselesaikan.'
         );
 
-        $reservasi->update(['status' => 'Selesai']);
+        $layananList = $reservasi->layananList();
+        return view('admin.reservasi.selesai', compact('reservasi', 'layananList'));
+    }
+
+    public function prosesSelesaiBayar(Request $request, Reservasi $reservasi)
+    {
+        abort_if(
+            $reservasi->status !== 'Berjalan',
+            403,
+            'Hanya reservasi yang sedang Berjalan yang dapat diselesaikan.'
+        );
+
+        $request->validate([
+            'payment_type' => 'required|in:tunai,bank_transfer,qris,gopay,shopeepay',
+            'notes'        => 'nullable|string|max:255',
+        ]);
+
+        $sisa = $reservasi->total_harga - $reservasi->jumlah_pembayaran;
+
+        \App\Models\Pembayaran::create([
+            'reservasi_id'       => $reservasi->id,
+            'type'               => 'pelunasan',
+            'order_id'           => 'PLN-' . $reservasi->id . '-' . now()->format('YmdHis'),
+            'gross_amount'       => $sisa > 0 ? $sisa : $reservasi->total_harga,
+            'payment_type'       => $request->payment_type,
+            'transaction_status' => 'settlement',
+            'transaction_time'   => now(),
+            'settlement_time'    => now(),
+            'notes'              => $request->notes,
+        ]);
+
+        $reservasi->update([
+            'jumlah_pembayaran' => $reservasi->total_harga,
+            'status_pembayaran' => 'Lunas',
+            'status'            => 'Selesai',
+        ]);
 
         return redirect()
             ->route('admin.reservasi.show', $reservasi->id)
-            ->with('success', 'Reservasi telah diselesaikan.');
+            ->with('success', 'Reservasi berhasil diselesaikan dan pembayaran telah dicatat.');
     }
+
+    /** @deprecated Digantikan oleh showSelesaiBayar + prosesSelesaiBayar */
+    public function tandaiSelesai(Reservasi $reservasi)
+    {
+        return redirect()->route('admin.reservasi.selesai-form', $reservasi->id);
+    }
+
 
     public function destroy(Reservasi $reservasi)
     {

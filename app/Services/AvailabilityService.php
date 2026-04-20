@@ -21,13 +21,16 @@ class AvailabilityService
 
         $hari = Pegawai::hariDariTanggal($tanggal);
 
+        // Deduplicate agar filter layanan tidak terpengaruh duplikat dari quantity cart
+        $uniqueLayananIds = array_unique($layananIds);
+
         // Pegawai yang punya jadwal di hari ini dan bisa handle semua layanan
-        $pegawais = Pegawai::with(['jadwalShifts.shift'])
+        $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
             ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get()
-            ->filter(function ($pegawai) use ($layananIds) {
+            ->filter(function ($pegawai) use ($uniqueLayananIds) {
                 $milik = $pegawai->layanan_id ?? [];
-                foreach ($layananIds as $id) {
+                foreach ($uniqueLayananIds as $id) {
                     if (!in_array($id, $milik)) return false;
                 }
                 return true;
@@ -81,12 +84,14 @@ class AvailabilityService
 
         $hari = Pegawai::hariDariTanggal($tanggal);
 
+        $uniqueLayananIds = array_unique($layananIds);
+
         $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
             ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get()
-            ->filter(function ($pegawai) use ($layananIds) {
+            ->filter(function ($pegawai) use ($uniqueLayananIds) {
                 $milik = $pegawai->layanan_id ?? [];
-                foreach ($layananIds as $id) {
+                foreach ($uniqueLayananIds as $id) {
                     if (!in_array($id, $milik)) return false;
                 }
                 return true;

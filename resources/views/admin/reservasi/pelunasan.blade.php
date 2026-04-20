@@ -125,6 +125,50 @@
                     </div>
                 </div>
 
+                {{-- Metode Pembayaran --}}
+                <div class="card border mb-4">
+                    <div class="card-header fw-semibold bg-light">
+                        <i class="bx bx-credit-card me-1"></i> Metode Pembayaran Sisa Tagihan
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label fw-semibold">Metode Pembayaran <span class="text-danger">*</span></label>
+                                <div class="row g-2 mt-1">
+                                    @php
+                                        $methods = [
+                                            'tunai'         => ['label' => 'Tunai',         'icon' => 'bx-money'],
+                                            'bank_transfer' => ['label' => 'Transfer Bank', 'icon' => 'bx-building-house'],
+                                            'qris'          => ['label' => 'QRIS',          'icon' => 'bx-qr'],
+                                            'gopay'         => ['label' => 'GoPay',         'icon' => 'bx-wallet'],
+                                            'shopeepay'     => ['label' => 'ShopeePay',     'icon' => 'bx-wallet-alt'],
+                                        ];
+                                    @endphp
+                                    @foreach($methods as $value => $method)
+                                        <div class="col-6 col-md-4">
+                                            <input type="radio" class="btn-check" name="payment_type"
+                                                   id="pay_{{ $value }}" value="{{ $value }}"
+                                                   {{ old('payment_type') === $value ? 'checked' : '' }} required>
+                                            <label class="btn btn-outline-primary w-100 py-2" for="pay_{{ $value }}">
+                                                <i class="bx {{ $method['icon'] }} d-block fs-5 mb-1"></i>
+                                                {{ $method['label'] }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('payment_type')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
+                                <textarea name="notes" class="form-control" rows="4"
+                                          placeholder="mis. no. rekening, nama bank, dll.">{{ old('notes') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Konfirmasi --}}
                 <div class="alert alert-warning d-flex gap-2 align-items-center">
                     <i class="bx bx-error fs-5"></i>

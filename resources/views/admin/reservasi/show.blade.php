@@ -19,15 +19,12 @@
                     </a>
                 @endif
 
-                {{-- Tandai Selesai: Walk-in + Lunas + Berjalan --}}
-                @if($reservasi->status === 'Berjalan' && $reservasi->status_pembayaran === 'Lunas')
-                    <form method="POST" action="{{ route('admin.reservasi.selesai', $reservasi->id) }}" class="d-inline"
-                          onsubmit="return confirm('Tandai reservasi ini sebagai Selesai?')">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-success">
-                            <i class="bx bx-check-circle"></i> Tandai Selesai
-                        </button>
-                    </form>
+                {{-- Tandai Selesai: Berjalan (semua jenis kecuali Online+DP yang punya tombol pelunasan sendiri) --}}
+                @if($reservasi->status === 'Berjalan' && !($reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP'))
+                    <a href="{{ route('admin.reservasi.selesai-form', $reservasi->id) }}"
+                       class="btn btn-sm btn-success">
+                        <i class="bx bx-check-circle"></i> Tandai Selesai
+                    </a>
                 @endif
 
                 @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
