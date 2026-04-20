@@ -34,11 +34,13 @@ class Pegawai extends Model
 
     /**
      * Ambil shift pegawai pada hari tertentu.
-     * $hari: 'senin'|'selasa'|'rabu'|'kamis'|'jumat'|'sabtu'|'minggu'
+     * Jika hari tersebut tidak diset, fallback ke shift apapun yang dimiliki pegawai.
      */
     public function shiftPadaHari(string $hari): ?Shift
     {
-        $jadwal = $this->jadwalShifts->firstWhere('hari', $hari);
+        $jadwal = $this->jadwalShifts->firstWhere('hari', $hari)
+                  ?? $this->jadwalShifts->first();
+
         return $jadwal?->shift;
     }
 

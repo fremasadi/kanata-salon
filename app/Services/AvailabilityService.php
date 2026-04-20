@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class AvailabilityService
 {
-    const SLOT_INTERVAL = 30;
+    public const SLOT_INTERVAL = 30;
 
     /**
      * Ambil slot waktu tersedia untuk tanggal dan layanan tertentu.
@@ -24,14 +24,15 @@ class AvailabilityService
         // Deduplicate agar filter layanan tidak terpengaruh duplikat dari quantity cart
         $uniqueLayananIds = array_unique($layananIds);
 
-        // Pegawai yang punya jadwal di hari ini dan bisa handle semua layanan
+        // Pegawai yang punya minimal 1 jadwal shift dan bisa handle semua layanan
+        // (shiftPadaHari() akan fallback ke shift lain jika hari ini tidak diset)
         $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
-            ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
+            ->whereHas('jadwalShifts')
             ->get()
             ->filter(function ($pegawai) use ($uniqueLayananIds) {
                 $milik = $pegawai->layanan_id ?? [];
                 foreach ($uniqueLayananIds as $id) {
-                    if (!in_array($id, $milik)) return false;
+                    if (!\in_array($id, $milik)) return false;
                 }
                 return true;
             });
@@ -92,7 +93,7 @@ class AvailabilityService
             ->filter(function ($pegawai) use ($uniqueLayananIds) {
                 $milik = $pegawai->layanan_id ?? [];
                 foreach ($uniqueLayananIds as $id) {
-                    if (!in_array($id, $milik)) return false;
+                    if (!\in_array($id, $milik)) return false;
                 }
                 return true;
             });
