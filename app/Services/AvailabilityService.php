@@ -19,44 +19,17 @@ class AvailabilityService
         $totalDurasi = JenisLayanan::whereIn('id', $layananIds)->sum('durasi_menit');
         $totalDurasi = $totalDurasi > 0 ? (int) $totalDurasi : 30;
 
-        $hari             = Pegawai::hariDariTanggal($tanggal);
-        $uniqueLayananIds = array_values(array_unique(array_map('intval', $layananIds)));
+        $hari = Pegawai::hariDariTanggal($tanggal);
 
-        $semuaPegawai = Pegawai::with(['jadwalShifts.shift', 'user'])->whereHas('jadwalShifts')->get();
-
-        $debug = [
-            'tanggal'         => $tanggal,
-            'hari'            => $hari,
-            'layanan_ids'     => $uniqueLayananIds,
-            'total_durasi'    => $totalDurasi,
-            'pegawai_jadwal'  => $semuaPegawai->count(),
-            'pegawai_detail'  => [],
-        ];
-
-        // Jika layanan_id pegawai kosong → anggap bisa handle semua layanan
-        $pegawais = $semuaPegawai->filter(function ($pegawai) use ($uniqueLayananIds, &$debug) {
-            $milik  = array_map('intval', $pegawai->layanan_id ?? []);
-            $lulus  = true;
-
-            if (!empty($milik)) {
-                foreach ($uniqueLayananIds as $id) {
-                    if (!\in_array($id, $milik)) { $lulus = false; break; }
-                }
-            }
-
-            $debug['pegawai_detail'][] = [
-                'id'        => $pegawai->id,
-                'nama'      => $pegawai->user->name ?? '?',
-                'layanan'   => $milik,
-                'jadwal'    => $pegawai->jadwalShifts->pluck('hari')->toArray(),
-                'lulus_filter' => $lulus,
-            ];
-
-            return $lulus;
-        });
+        // Untuk checkout: ambil semua pegawai yang punya jadwal shift.
+        // Filter layanan tidak dilakukan di sini — penentuan pegawai per layanan
+        // adalah tugas admin saat memulai layanan, bukan saat customer memilih slot.
+        $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
+            ->whereHas('jadwalShifts')
+            ->get();
 
         if ($pegawais->isEmpty()) {
-            return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi, '_debug' => $debug];
+            return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
         $reservasiAktif = Reservasi::where('tanggal', $tanggal)
@@ -68,20 +41,10 @@ class AvailabilityService
 
         foreach ($pegawais as $pegawai) {
             $shift = $pegawai->shiftPadaHari($hari);
-            if (!$shift) {
-                $debug['pegawai_detail'][] = ['skip' => 'no_shift', 'id' => $pegawai->id];
-                continue;
-            }
+            if (!$shift) continue;
 
             $slots            = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
             $reservasiPegawai = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
-
-            $debug['shift_' . $pegawai->id] = [
-                'shift'         => $shift->nama,
-                'mulai'         => $shift->waktu_mulai,
-                'selesai'       => $shift->waktu_selesai,
-                'slots_generated' => count($slots),
-            ];
 
             foreach ($slots as $slotTime) {
                 if ($this->hasConflict($slotTime, $totalDurasi, $reservasiPegawai)) continue;
@@ -99,7 +62,6 @@ class AvailabilityService
             'slots'        => array_keys($bySlot),
             'by_slot'      => $bySlot,
             'total_durasi' => $totalDurasi,
-            '_debug'       => $debug,
         ];
     }
 
