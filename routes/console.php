@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 // Batalkan otomatis reservasi yang tanggalnya sudah lewat, setiap hari tengah malam
 Schedule::command('reservasi:auto-batal')->everyMinute();
+Schedule::command('gaji:generate')->everyMinute();
