@@ -11,6 +11,7 @@ class Pembayaran extends Model
 
     protected $fillable = [
         'reservasi_id',
+        'type',
         'order_id',
         'transaction_id',
         'gross_amount',

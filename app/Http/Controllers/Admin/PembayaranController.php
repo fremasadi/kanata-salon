@@ -16,6 +16,10 @@ class PembayaranController extends Controller
             $query->where('transaction_status', $request->status);
         }
 
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
         if ($request->filled('payment_type')) {
             $query->where('payment_type', $request->payment_type);
         }

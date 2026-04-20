@@ -24,6 +24,14 @@
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label">Tipe</label>
+                        <select name="type" class="form-select">
+                            <option value="">-- Semua --</option>
+                            <option value="reservasi"  {{ request('type') == 'reservasi'  ? 'selected' : '' }}>Reservasi</option>
+                            <option value="pelunasan"  {{ request('type') == 'pelunasan'  ? 'selected' : '' }}>Pelunasan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label">Metode</label>
                         <select name="payment_type" class="form-select">
                             <option value="">-- Semua --</option>
@@ -66,6 +74,7 @@
                         <th>#</th>
                         <th>Order ID</th>
                         <th>Pelanggan</th>
+                        <th>Tipe</th>
                         <th>Metode</th>
                         <th>Status</th>
                         <th>Nominal</th>
@@ -92,6 +101,11 @@
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
+                            </td>
+                            <td>
+                                <span class="badge {{ $p->type === 'pelunasan' ? 'bg-info text-dark' : 'bg-primary' }}">
+                                    {{ ucfirst($p->type ?? 'reservasi') }}
+                                </span>
                             </td>
                             <td>{{ $p->getPaymentMethodLabel() }}</td>
                             <td>
