@@ -22,7 +22,7 @@
                                 <th>Jam</th>
                                 <th>Total Harga</th>
                                 <th>Status</th>
-                                <th>Aksi</th>
+                                <!-- <th>Aksi</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -51,38 +51,38 @@
                                             <span class="badge bg-danger">Batal</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @if($reservasi->pegawai_pj_id == $pegawai->id)
-                                            {{-- PJ bisa ubah status --}}
-                                            @if(in_array($reservasi->status, ['Menunggu', 'Berjalan']))
-                                                <form action="{{ route('pegawai.reservasi.update-status', $reservasi->id) }}" 
-                                                    method="POST" class="d-inline form-update-status">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    @if($reservasi->status === 'Menunggu')
-                                                        <input type="hidden" name="status" value="Berjalan">
-                                                        <button type="button" class="btn btn-sm btn-warning btn-update-status" data-status="Berjalan">
-                                                            <i class="bx bx-play-circle"></i> Berjalan
-                                                        </button>
-                                                    @elseif($reservasi->status === 'Berjalan')
-                                                        <input type="hidden" name="status" value="Selesai">
-                                                        <button type="button" class="btn btn-sm btn-success btn-update-status" data-status="Selesai">
-                                                            <i class="bx bx-check-circle"></i> Selesai
-                                                        </button>
-                                                    @endif
-                                                </form>
-                                            @else
-                                                <button class="btn btn-sm btn-light" disabled>
-                                                    <i class="bx bx-lock"></i>
-                                                </button>
-                                            @endif
-                                        @else
-                                            {{-- Helper hanya lihat, tidak bisa update --}}
-                                            <button class="btn btn-sm btn-light" disabled>
-                                                <i class="bx bx-lock"></i>
-                                            </button>
-                                        @endif
-                                    </td>
+                                    <!-- <td>
+                                                        @if($reservasi->pegawai_pj_id == $pegawai->id)
+                                                            {{-- PJ bisa ubah status --}}
+                                                            @if(in_array($reservasi->status, ['Menunggu', 'Berjalan']))
+                                                                <form action="{{ route('pegawai.reservasi.update-status', $reservasi->id) }}" 
+                                                                    method="POST" class="d-inline form-update-status">
+                                                                    @csrf
+                                                                    @method('PUT')
+                                                                    @if($reservasi->status === 'Menunggu')
+                                                                        <input type="hidden" name="status" value="Berjalan">
+                                                                        <button type="button" class="btn btn-sm btn-warning btn-update-status" data-status="Berjalan">
+                                                                            <i class="bx bx-play-circle"></i> Berjalan
+                                                                        </button>
+                                                                    @elseif($reservasi->status === 'Berjalan')
+                                                                        <input type="hidden" name="status" value="Selesai">
+                                                                        <button type="button" class="btn btn-sm btn-success btn-update-status" data-status="Selesai">
+                                                                            <i class="bx bx-check-circle"></i> Selesai
+                                                                        </button>
+                                                                    @endif
+                                                                </form>
+                                                            @else
+                                                                <button class="btn btn-sm btn-light" disabled>
+                                                                    <i class="bx bx-lock"></i>
+                                                                </button>
+                                                            @endif
+                                                        @else
+                                                            {{-- Helper hanya lihat, tidak bisa update --}}
+                                                            <button class="btn btn-sm btn-light" disabled>
+                                                                <i class="bx bx-lock"></i>
+                                                            </button>
+                                                        @endif
+                                                    </td> -->
                                 </tr>
                             @endforeach
                         </tbody>
@@ -98,35 +98,35 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.btn-update-status').forEach(button => {
-            button.addEventListener('click', function () {
-                let form = this.closest('form');
-                let status = this.dataset.status;
-                let textConfirm = status === 'Berjalan' 
-                    ? 'Ubah status menjadi <strong>Berjalan</strong>?'
-                    : 'Tandai reservasi ini sebagai <strong>Selesai</strong>?';
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.btn-update-status').forEach(button => {
+                    button.addEventListener('click', function () {
+                        let form = this.closest('form');
+                        let status = this.dataset.status;
+                        let textConfirm = status === 'Berjalan'
+                            ? 'Ubah status menjadi <strong>Berjalan</strong>?'
+                            : 'Tandai reservasi ini sebagai <strong>Selesai</strong>?';
 
-                Swal.fire({
-                    title: 'Konfirmasi',
-                    html: textConfirm,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: status === 'Selesai' ? '#28a745' : '#ffc107',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, lanjutkan',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true,
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                        Swal.fire({
+                            title: 'Konfirmasi',
+                            html: textConfirm,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: status === 'Selesai' ? '#28a745' : '#ffc107',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, lanjutkan',
+                            cancelButtonText: 'Batal',
+                            reverseButtons: true,
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
                 });
             });
-        });
-    });
-    </script>
+        </script>
     @endpush
 </x-app-layout>

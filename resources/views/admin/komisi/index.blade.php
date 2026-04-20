@@ -5,6 +5,14 @@
                 <h5 class="mb-0">
                     <i class="bx bx-money me-2"></i> Daftar Komisi Pegawai
                 </h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.komisi.export-csv', request()->query()) }}" class="btn btn-success btn-sm">
+                        <i class="bx bx-spreadsheet"></i> Export Excel
+                    </a>
+                    <a href="{{ route('admin.komisi.print', request()->query()) }}" target="_blank" class="btn btn-secondary btn-sm">
+                        <i class="bx bx-printer"></i> Cetak / PDF
+                    </a>
+                </div>
             </div>
 
             <div class="card-body">

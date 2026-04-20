@@ -25,7 +25,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('pegawai', PegawaiController::class);
         Route::get('pembayaran', [\App\Http\Controllers\Admin\PembayaranController::class, 'index'])->name('pembayaran.index');
         Route::resource('komisi', \App\Http\Controllers\Admin\KomisiController::class)->only(['index']);
+        Route::get('komisi/export-csv', [\App\Http\Controllers\Admin\KomisiController::class, 'exportCsv'])->name('komisi.export-csv');
+        Route::get('komisi/print', [\App\Http\Controllers\Admin\KomisiController::class, 'printView'])->name('komisi.print');
         Route::get('gaji', [GajiController::class, 'index'])->name('gaji.index');
+        Route::get('gaji/export-csv', [GajiController::class, 'exportCsv'])->name('gaji.export-csv');
+        Route::get('gaji/print', [GajiController::class, 'printView'])->name('gaji.print');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
         Route::post('reservasi/available-pegawai', [\App\Http\Controllers\Admin\ReservasiController::class, 'availablePegawai'])->name('reservasi.available-pegawai');
         Route::get('reservasi/export-csv', [\App\Http\Controllers\Admin\ReservasiController::class, 'exportCsv'])->name('reservasi.export-csv');
@@ -73,9 +77,8 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

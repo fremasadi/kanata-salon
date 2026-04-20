@@ -1,10 +1,18 @@
 <x-app-layout>
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bx bx-money me-2"></i> Daftar Gaji Pegawai
-                </h5>
+            <h5 class="mb-0">
+                <i class="bx bx-money me-2"></i> Daftar Gaji Pegawai
+            </h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.gaji.export-csv', request()->query()) }}" class="btn btn-success btn-sm">
+                    <i class="bx bx-spreadsheet"></i> Export Excel
+                </a>
+                <a href="{{ route('admin.gaji.print', request()->query()) }}" target="_blank" class="btn btn-secondary btn-sm">
+                    <i class="bx bx-printer"></i> Cetak / PDF
+                </a>
             </div>
+        </div>
 
         {{-- Filter --}}
         <div class="card mb-4">
