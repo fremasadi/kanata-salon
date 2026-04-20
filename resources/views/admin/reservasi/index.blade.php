@@ -151,9 +151,11 @@
                                     <a href="{{ route('admin.reservasi.show', $reservasi->id) }}" class="btn btn-sm btn-outline-info">
                                         <i class="bx bx-show"></i>
                                     </a>
-                                    <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
+                                    @if($reservasi->status !== 'Batal')
+                                        <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
