@@ -23,6 +23,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('jenis-layanan', JenisLayananController::class)->names('jenis-layanan');
         Route::resource('shift', ShiftController::class)->names('shift');
         Route::resource('pegawai', PegawaiController::class);
+        Route::get('pembayaran', [\App\Http\Controllers\Admin\PembayaranController::class, 'index'])->name('pembayaran.index');
         Route::resource('komisi', \App\Http\Controllers\Admin\KomisiController::class)->only(['index']);
         Route::get('gaji', [GajiController::class, 'index'])->name('gaji.index');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');

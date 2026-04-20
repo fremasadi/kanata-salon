@@ -67,6 +67,14 @@
                 </a>
             </li>
 
+            {{-- Pembayaran --}}
+            <li class="menu-item {{ request()->routeIs('admin.pembayaran.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pembayaran.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-credit-card"></i>
+                    <div>Pembayaran</div>
+                </a>
+            </li>
+
             {{-- Keuangan --}}
             {{-- <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Keuangan</span>
