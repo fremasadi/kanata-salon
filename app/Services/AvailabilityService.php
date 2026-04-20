@@ -9,38 +9,26 @@ use Carbon\Carbon;
 
 class AvailabilityService
 {
-    /**
-     * Interval slot dalam menit (setiap 30 menit).
-     */
     const SLOT_INTERVAL = 30;
 
     /**
-     * Ambil slot waktu yang tersedia untuk tanggal dan layanan tertentu.
-     *
-     * @param  string  $tanggal     Format Y-m-d
-     * @param  array   $layananIds  Array ID jenis_layanan yang dipesan
-     * @return array   [
-     *   'slots'       => ['HH:MM', ...],           // urutan waktu tersedia
-     *   'by_slot'     => ['HH:MM' => [['id'=>1,'nama'=>'...'], ...], ...],
-     *   'total_durasi'=> int (menit),
-     * ]
+     * Ambil slot waktu tersedia untuk tanggal dan layanan tertentu.
      */
     public function getAvailableSlots(string $tanggal, array $layananIds): array
     {
-        // 1. Hitung total durasi semua layanan yang dipilih
         $totalDurasi = JenisLayanan::whereIn('id', $layananIds)->sum('durasi_menit');
-        $totalDurasi = $totalDurasi > 0 ? (int) $totalDurasi : 30; // fallback 30 menit
+        $totalDurasi = $totalDurasi > 0 ? (int) $totalDurasi : 30;
 
-        // 2. Cari pegawai yang memiliki shift dan bisa menangani SEMUA layanan yang diminta
-        $pegawais = Pegawai::with(['user', 'shift'])
-            ->whereNotNull('shift_id')
+        $hari = Pegawai::hariDariTanggal($tanggal);
+
+        // Pegawai yang punya jadwal di hari ini dan bisa handle semua layanan
+        $pegawais = Pegawai::with(['jadwalShifts.shift'])
+            ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get()
             ->filter(function ($pegawai) use ($layananIds) {
-                $milikPegawai = $pegawai->layanan_id ?? [];
+                $milik = $pegawai->layanan_id ?? [];
                 foreach ($layananIds as $id) {
-                    if (!in_array($id, $milikPegawai)) {
-                        return false;
-                    }
+                    if (!in_array($id, $milik)) return false;
                 }
                 return true;
             });
@@ -49,38 +37,22 @@ class AvailabilityService
             return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
-        // 3. Ambil semua reservasi aktif pada tanggal tsb (sudah ada pegawai PJ)
         $reservasiAktif = Reservasi::where('tanggal', $tanggal)
             ->whereNotIn('status', ['Batal'])
             ->whereNotNull('pegawai_pj_id')
             ->get();
 
-        // 4. Generate slot per pegawai, filter yang bentrok
         $bySlot = [];
 
         foreach ($pegawais as $pegawai) {
-            $shift = $pegawai->shift;
-            if (!$shift) {
-                continue;
-            }
+            $shift = $pegawai->shiftPadaHari($hari);
+            if (!$shift) continue;
 
-            $slots = $this->generateSlots(
-                $shift->waktu_mulai,
-                $shift->waktu_selesai,
-                $totalDurasi
-            );
-
-            // Reservasi yang sudah dipegang pegawai ini sebagai PJ
+            $slots = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
             $reservasiPegawai = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
 
             foreach ($slots as $slotTime) {
-                if ($this->hasConflict($slotTime, $totalDurasi, $reservasiPegawai)) {
-                    continue;
-                }
-
-                if (!isset($bySlot[$slotTime])) {
-                    $bySlot[$slotTime] = [];
-                }
+                if ($this->hasConflict($slotTime, $totalDurasi, $reservasiPegawai)) continue;
 
                 $bySlot[$slotTime][] = [
                     'id'   => $pegawai->id,
@@ -99,27 +71,23 @@ class AvailabilityService
     }
 
     /**
-     * Ambil pegawai yang tersedia untuk tanggal, jam, dan layanan tertentu.
-     * Digunakan di form admin untuk memilih pegawai PJ.
-     *
-     * @param  string   $tanggal
-     * @param  string   $jam         Format H:i
-     * @param  array    $layananIds
-     * @param  int|null $excludeId   ID reservasi yang sedang diedit (dikecualikan dari conflict check)
-     * @return array    [['id' => 1, 'nama' => '...', 'shift' => '...'], ...]
+     * Ambil pegawai tersedia untuk tanggal, jam, dan layanan tertentu.
+     * Digunakan AJAX di form admin reservasi.
      */
     public function getAvailablePegawaiForSlot(string $tanggal, string $jam, array $layananIds, ?int $excludeId = null): array
     {
         $totalDurasi = JenisLayanan::whereIn('id', $layananIds)->sum('durasi_menit');
         $totalDurasi = $totalDurasi > 0 ? (int) $totalDurasi : 30;
 
-        $pegawais = Pegawai::with(['user', 'shift'])
-            ->whereNotNull('shift_id')
+        $hari = Pegawai::hariDariTanggal($tanggal);
+
+        $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
+            ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get()
             ->filter(function ($pegawai) use ($layananIds) {
-                $milikPegawai = $pegawai->layanan_id ?? [];
+                $milik = $pegawai->layanan_id ?? [];
                 foreach ($layananIds as $id) {
-                    if (!in_array($id, $milikPegawai)) return false;
+                    if (!in_array($id, $milik)) return false;
                 }
                 return true;
             });
@@ -130,7 +98,6 @@ class AvailabilityService
         $slotStart = Carbon::parse($base . ' ' . $jam);
         $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
 
-        // Reservasi aktif di tanggal tsb, kecuali reservasi yang sedang diedit
         $query = Reservasi::where('tanggal', $tanggal)
             ->whereNotIn('status', ['Batal'])
             ->whereNotNull('pegawai_pj_id');
@@ -144,17 +111,15 @@ class AvailabilityService
         $result = [];
 
         foreach ($pegawais as $pegawai) {
-            $shift = $pegawai->shift;
+            $shift = $pegawai->shiftPadaHari($hari);
             if (!$shift) continue;
 
-            // Validasi slot masuk dalam rentang shift pegawai
             $shiftStart = Carbon::parse($base . ' ' . substr($shift->waktu_mulai, 0, 5));
             $shiftEnd   = Carbon::parse($base . ' ' . substr($shift->waktu_selesai, 0, 5));
             if ($shiftEnd->lte($shiftStart)) $shiftEnd->addDay();
 
             if ($slotStart->lt($shiftStart) || $slotEnd->gt($shiftEnd)) continue;
 
-            // Cek konflik reservasi
             $reservasiPegawai = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
             if ($this->hasConflict($jam, $totalDurasi, $reservasiPegawai)) continue;
 
@@ -168,22 +133,14 @@ class AvailabilityService
         return $result;
     }
 
-    /**
-     * Buat daftar waktu mulai slot setiap SLOT_INTERVAL menit dalam rentang shift.
-     * Mendukung shift lintas tengah malam (mis. 18:00 → 00:00).
-     */
     private function generateSlots(string $waktuMulai, string $waktuSelesai, int $durasiMenit): array
     {
         $base  = Carbon::today()->toDateString();
         $start = Carbon::parse($base . ' ' . substr($waktuMulai, 0, 5));
         $end   = Carbon::parse($base . ' ' . substr($waktuSelesai, 0, 5));
 
-        // Shift lintas tengah malam: waktu_selesai <= waktu_mulai
-        if ($end->lte($start)) {
-            $end->addDay();
-        }
+        if ($end->lte($start)) $end->addDay();
 
-        // Slot terakhir harus cukup waktu untuk menyelesaikan layanan sebelum shift habis
         $lastSlotStart = $end->copy()->subMinutes($durasiMenit);
 
         $slots   = [];
@@ -197,21 +154,16 @@ class AvailabilityService
         return $slots;
     }
 
-    /**
-     * Cek apakah slot tertentu bentrok dengan reservasi yang sudah ada.
-     * Dua slot bentrok jika interval waktunya overlap:
-     *   slotStart < existingEnd  AND  existingStart < slotEnd
-     */
     private function hasConflict(string $slotTime, int $durasiMenit, $reservasiList): bool
     {
-        $base     = Carbon::today()->toDateString();
+        $base      = Carbon::today()->toDateString();
         $slotStart = Carbon::parse($base . ' ' . $slotTime);
         $slotEnd   = $slotStart->copy()->addMinutes($durasiMenit);
 
         foreach ($reservasiList as $res) {
-            $existingStart = Carbon::parse($base . ' ' . substr($res->jam, 0, 5));
+            $existingStart  = Carbon::parse($base . ' ' . substr($res->jam, 0, 5));
             $existingDurasi = $this->getReservasiDurasi($res);
-            $existingEnd   = $existingStart->copy()->addMinutes($existingDurasi);
+            $existingEnd    = $existingStart->copy()->addMinutes($existingDurasi);
 
             if ($slotStart->lt($existingEnd) && $existingStart->lt($slotEnd)) {
                 return true;
@@ -221,19 +173,12 @@ class AvailabilityService
         return false;
     }
 
-    /**
-     * Hitung total durasi menit dari reservasi berdasarkan layanan yang dipesan.
-     * Fallback ke 30 menit jika durasi tidak tersedia.
-     */
     private function getReservasiDurasi(Reservasi $reservasi): int
     {
         $ids = $reservasi->layanan_id;
-        if (empty($ids)) {
-            return 30;
-        }
+        if (empty($ids)) return 30;
 
         $durasi = JenisLayanan::whereIn('id', $ids)->sum('durasi_menit');
-
         return $durasi > 0 ? (int) $durasi : 30;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Pegawai extends Model
 {
@@ -13,7 +14,6 @@ class Pegawai extends Model
 
     protected $fillable = [
         'user_id',
-        'shift_id',
         'layanan_id',
         'kontak',
     ];
@@ -22,29 +22,42 @@ class Pegawai extends Model
         'layanan_id' => 'array',
     ];
 
-    // Relasi ke User
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi ke Shift
-    public function shift()
+    public function jadwalShifts()
     {
-        return $this->belongsTo(Shift::class, 'shift_id');
+        return $this->hasMany(JadwalShift::class);
     }
 
-    // Relasi ke JenisLayanan (mengakses data dari JSON array)
+    /**
+     * Ambil shift pegawai pada hari tertentu.
+     * $hari: 'senin'|'selasa'|'rabu'|'kamis'|'jumat'|'sabtu'|'minggu'
+     */
+    public function shiftPadaHari(string $hari): ?Shift
+    {
+        $jadwal = $this->jadwalShifts->firstWhere('hari', $hari);
+        return $jadwal?->shift;
+    }
+
+    /**
+     * Ambil hari Indonesia dari tanggal (Carbon atau string Y-m-d).
+     */
+    public static function hariDariTanggal(string $tanggal): string
+    {
+        $map = [0 => 'minggu', 1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu'];
+        return $map[Carbon::parse($tanggal)->dayOfWeek];
+    }
+
     public function jenisLayanans()
     {
         return JenisLayanan::whereIn('id', $this->layanan_id ?? []);
     }
 
-    // Helper method untuk mendapatkan array ID layanan
     public function getLayananIdsAttribute()
     {
         return $this->layanan_id ?? [];
     }
-
-    
 }

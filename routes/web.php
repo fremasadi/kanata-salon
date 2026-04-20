@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('gaji', [GajiController::class, 'index'])->name('gaji.index');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
         Route::post('reservasi/available-pegawai', [\App\Http\Controllers\Admin\ReservasiController::class, 'availablePegawai'])->name('reservasi.available-pegawai');
+        Route::get('reservasi/export-csv', [\App\Http\Controllers\Admin\ReservasiController::class, 'exportCsv'])->name('reservasi.export-csv');
+        Route::get('reservasi/print', [\App\Http\Controllers\Admin\ReservasiController::class, 'printView'])->name('reservasi.print');
         Route::patch('reservasi/{reservasi}/update-status', [\App\Http\Controllers\Admin\ReservasiController::class, 'updateStatus'])->name('reservasi.update-status');
         Route::get('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'showPelunasan'])->name('reservasi.pelunasan');
         Route::post('reservasi/{reservasi}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'prosesPelunasan'])->name('reservasi.proses-pelunasan');

@@ -1,23 +1,40 @@
 <x-app-layout>
     <div class="card">
-         <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bx bx-category-alt me-2"></i> Jadwal Kerja Saya
             </h5>
-            
         </div>
         <div class="card shadow-sm">
             <div class="card-body">
-                @if($pegawai && $pegawai->shift)
-                    <div class="text-center">
-                        <h5 class="mb-3">Shift: <strong>{{ $pegawai->shift->nama }}</strong></h5>
-                        <p class="mb-1">Jam Mulai: <strong>{{ \Carbon\Carbon::parse($pegawai->shift->waktu_mulai)->format('H:i') }}</strong></p>
-                        <p>Jam Selesai: <strong>{{ \Carbon\Carbon::parse($pegawai->shift->waktu_selesai)->format('H:i') }}</strong></p>
-
-                        <div class="alert alert-info mt-3">
-                            <i class="bx bx-time-five"></i> 
-                            Anda sedang dijadwalkan untuk shift <strong>{{ $pegawai->shift->nama }}</strong>.
-                        </div>
+                @if($pegawai && $pegawai->jadwalShifts->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $label)
+                                        <th>{{ $label }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    @foreach(['senin','selasa','rabu','kamis','jumat','sabtu','minggu'] as $hari)
+                                        @php $shift = $pegawai->shiftPadaHari($hari); @endphp
+                                        <td>
+                                            @if($shift)
+                                                <span class="badge bg-primary d-block mb-1">{{ $shift->nama }}</span>
+                                                <small class="text-muted">
+                                                    {{ substr($shift->waktu_mulai, 0, 5) }} – {{ substr($shift->waktu_selesai, 0, 5) }}
+                                                </small>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <div class="alert alert-warning text-center">

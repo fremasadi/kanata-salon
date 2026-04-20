@@ -12,7 +12,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-        
 
         <div class="row g-3">
             {{-- Nama --}}
@@ -22,9 +21,7 @@
                     value="{{ old('name', $pegawai->user->name ?? '') }}"
                     class="form-control @error('name') is-invalid @enderror"
                     placeholder="Masukkan nama pegawai" required>
-                @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- Email --}}
@@ -34,9 +31,7 @@
                     value="{{ old('email', $pegawai->user->email ?? '') }}"
                     class="form-control @error('email') is-invalid @enderror"
                     placeholder="Masukkan email pegawai" required>
-                @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- Password --}}
@@ -46,9 +41,7 @@
                     class="form-control @error('password') is-invalid @enderror"
                     placeholder="{{ isset($pegawai) ? 'Kosongkan jika tidak ingin ubah password' : 'Minimal 6 karakter' }}"
                     {{ isset($pegawai) ? '' : 'required' }}>
-                @error('password')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- Kontak --}}
@@ -58,35 +51,12 @@
                     value="{{ old('kontak', $pegawai->kontak ?? '') }}"
                     class="form-control @error('kontak') is-invalid @enderror"
                     placeholder="Masukkan nomor kontak">
-                @error('kontak')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            {{-- Shift --}}
-            <div class="col-md-6">
-                <label for="shift_id" class="form-label">Shift</label>
-                <select name="shift_id" id="shift_id"
-                        class="form-select @error('shift_id') is-invalid @enderror">
-                    <option value="">-- Off Shift --</option>
-                    @foreach($shifts as $shift)
-                        <option value="{{ $shift->id }}"
-                            {{ old('shift_id', $pegawai->shift_id ?? '') == $shift->id ? 'selected' : '' }}>
-                            {{ $shift->nama }} ({{ $shift->waktu_mulai }} - {{ $shift->waktu_selesai }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('shift_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('kontak')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- Layanan --}}
-            @php
-                $selectedLayananIds = old('layanan_id', $pegawai->layanan_id ?? []);
-            @endphp
-
-            <div class="col-md-6">
+            @php $selectedLayananIds = old('layanan_id', $pegawai->layanan_id ?? []); @endphp
+            <div class="col-md-12">
                 <label for="layanan_id" class="form-label">Layanan yang Dikuasai</label>
                 <select name="layanan_id[]" id="layanan_id"
                         class="form-select select2-multiple @error('layanan_id') is-invalid @enderror"
@@ -98,12 +68,47 @@
                         </option>
                     @endforeach
                 </select>
-                @error('layanan_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('layanan_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-
+            {{-- Jadwal Shift Mingguan --}}
+            <div class="col-md-12">
+                <label class="form-label fw-semibold">Jadwal Shift Mingguan</label>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                @foreach($hariList as $hari)
+                                    <th class="text-center text-capitalize">{{ $hari }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                @foreach($hariList as $hari)
+                                    @php
+                                        $selectedShift = old("jadwal.$hari", $jadwalMap[$hari] ?? null);
+                                    @endphp
+                                    <td>
+                                        <select name="jadwal[{{ $hari }}]" class="form-select form-select-sm">
+                                            <option value="">— Off —</option>
+                                            @foreach($shifts as $shift)
+                                                <option value="{{ $shift->id }}"
+                                                    {{ $selectedShift == $shift->id ? 'selected' : '' }}>
+                                                    {{ $shift->nama }}
+                                                    ({{ substr($shift->waktu_mulai, 0, 5) }}-{{ substr($shift->waktu_selesai, 0, 5) }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">Pilih "— Off —" jika pegawai libur di hari tersebut.</small>
+            </div>
+        </div>
 
         <div class="mt-4 text-end">
             <a href="{{ route('admin.pegawai.index') }}" class="btn btn-outline-secondary me-2">

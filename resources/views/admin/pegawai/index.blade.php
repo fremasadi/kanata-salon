@@ -25,7 +25,7 @@
                             <th>#</th>
                             <th>Nama</th>
                             <th>Email</th>
-                            <th>Shift</th>
+                            <th>Jadwal Shift</th>
                             <th>Kontak</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -36,7 +36,24 @@
                                 <td>{{ $pegawais->firstItem() + $index }}</td>
                                 <td>{{ $pegawai->user->name }}</td>
                                 <td>{{ $pegawai->user->email }}</td>
-                                <td>{{ $pegawai->shift->nama ?? 'Off Shift' }}</td>
+                                <td>
+                                    @php
+                                        $hariList = ['sen','sel','rab','kam','jum','sab','min'];
+                                        $hariKey  = ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'];
+                                        $jadwalMap = $pegawai->jadwalShifts->pluck('shift_id','hari');
+                                    @endphp
+                                    @if($pegawai->jadwalShifts->isEmpty())
+                                        <span class="text-muted">Off Shift</span>
+                                    @else
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($hariKey as $i => $hari)
+                                                @if($jadwalMap->has($hari))
+                                                    <span class="badge bg-primary">{{ $hariList[$i] }}</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
                                 <td>{{ $pegawai->kontak ?? '-' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">

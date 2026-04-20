@@ -2,9 +2,19 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4>Daftar Reservasi</h4>
-            <a href="{{ route('admin.reservasi.create') }}" class="btn btn-primary" style="background-color:#e30083;border:none;">
-                <i class="bx bx-plus"></i> Tambah Reservasi
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.reservasi.export-csv', request()->query()) }}"
+                   class="btn btn-success">
+                    <i class="bx bx-spreadsheet"></i> Export Excel
+                </a>
+                <a href="{{ route('admin.reservasi.print', request()->query()) }}"
+                   target="_blank" class="btn btn-secondary">
+                    <i class="bx bx-printer"></i> Cetak / PDF
+                </a>
+                <a href="{{ route('admin.reservasi.create') }}" class="btn btn-primary" style="background-color:#e30083;border:none;">
+                    <i class="bx bx-plus"></i> Tambah Reservasi
+                </a>
+            </div>
         </div>
 
         {{-- Filter --}}
@@ -29,11 +39,23 @@
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label">Tanggal Dari</label>
+                        <input type="date" name="tanggal_dari" class="form-control"
+                               value="{{ request('tanggal_dari') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tanggal Sampai</label>
+                        <input type="date" name="tanggal_sampai" class="form-control"
+                               value="{{ request('tanggal_sampai') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label d-block">&nbsp;</label>
                         <button class="btn btn-primary w-100" style="background-color:#e30083;border:none;">
                             <i class="bx bx-search-alt"></i> Filter
                         </button>
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label d-block">&nbsp;</label>
                         <a href="{{ route('admin.reservasi.index') }}" class="btn btn-secondary w-100">
                             <i class="bx bx-refresh"></i> Reset
                         </a>

@@ -10,8 +10,9 @@ class ShiftController extends Controller
 {
     public function index()
     {
-        // Ambil pegawai berdasarkan user yang login
-        $pegawai = Pegawai::with('shift')->where('user_id', Auth::id())->first();
+        $pegawai = Pegawai::with(['jadwalShifts.shift'])
+            ->where('user_id', Auth::id())
+            ->first();
 
         return view('pegawai.shift.index', compact('pegawai'));
     }

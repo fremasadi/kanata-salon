@@ -16,42 +16,51 @@ class ReservasiController extends Controller
     public function index(Request $request)
     {
         $query = Reservasi::with(['pegawaiPJ.user']);
-        if ($request->filled('jenis')) $query->where('jenis', $request->jenis);
-        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('jenis'))   $query->where('jenis', $request->jenis);
+        if ($request->filled('status'))  $query->where('status', $request->status);
         if ($request->filled('status_pembayaran')) $query->where('status_pembayaran', $request->status_pembayaran);
+        if ($request->filled('tanggal_dari'))   $query->whereDate('tanggal', '>=', $request->tanggal_dari);
+        if ($request->filled('tanggal_sampai')) $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
 
-        $reservasis = $query->latest()->paginate(10);
+        $reservasis = $query->latest()->paginate(10)->withQueryString();
         return view('admin.reservasi.index', compact('reservasis'));
     }
 
     public function create()
     {
         $layanans = JenisLayanan::all();
-        $now = Carbon::now();
-        $currentTime = $now->format('H:i:s');
+        $now      = Carbon::now();
 
-        // Deteksi shift aktif
-        $shiftAktif = Shift::where(function ($query) use ($currentTime) {
-            $query->where(function ($q) use ($currentTime) {
-                $q->where('waktu_mulai', '<=', $currentTime)
-                  ->where('waktu_selesai', '>=', $currentTime)
-                  ->whereRaw('waktu_mulai < waktu_selesai');
-            })
-            ->orWhere(function ($q) use ($currentTime) {
-                $q->where(function ($subQ) use ($currentTime) {
-                    $subQ->where('waktu_mulai', '<=', $currentTime)
-                         ->whereRaw('waktu_mulai > waktu_selesai');
-                })
-                ->orWhere(function ($subQ) use ($currentTime) {
-                    $subQ->where('waktu_selesai', '>=', $currentTime)
-                         ->whereRaw('waktu_mulai > waktu_selesai');
-                });
+        $hariMap  = [0 => 'minggu', 1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu'];
+        $hariIni  = $hariMap[$now->dayOfWeek];
+        $jamIni   = $now->format('H:i:s');
+
+        // Cari shift yang sedang aktif sekarang (berdasarkan jam)
+        $shiftAktif = Shift::where(function ($q) use ($jamIni) {
+            $q->where(function ($sub) use ($jamIni) {
+                // Shift normal (tidak lintas tengah malam)
+                $sub->where('waktu_mulai', '<=', $jamIni)
+                    ->where('waktu_selesai', '>=', $jamIni)
+                    ->whereRaw('waktu_mulai < waktu_selesai');
+            })->orWhere(function ($sub) use ($jamIni) {
+                // Shift lintas tengah malam
+                $sub->whereRaw('waktu_mulai > waktu_selesai')
+                    ->where(function ($s) use ($jamIni) {
+                        $s->where('waktu_mulai', '<=', $jamIni)
+                          ->orWhere('waktu_selesai', '>=', $jamIni);
+                    });
             });
         })->first();
 
-        $pegawais = $shiftAktif
-            ? Pegawai::with(['user', 'shift'])->where('shift_id', $shiftAktif->id)->get()
-            : collect();
+        // Pegawai yang punya jadwal hari ini + (opsional) shift sesuai shift aktif
+        $pegawaiQuery = Pegawai::with(['user', 'jadwalShifts.shift'])
+            ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hariIni));
+
+        if ($shiftAktif) {
+            $pegawaiQuery->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hariIni)->where('shift_id', $shiftAktif->id));
+        }
+
+        $pegawais = $pegawaiQuery->get();
 
         return view('admin.reservasi.create', compact('layanans', 'pegawais', 'shiftAktif'));
     }
@@ -99,7 +108,7 @@ class ReservasiController extends Controller
     public function edit(Reservasi $reservasi)
     {
         $layanans = JenisLayanan::all();
-        $pegawais = Pegawai::with(['user', 'shift'])->get();
+        $pegawais = Pegawai::with(['user', 'jadwalShifts.shift'])->get();
         return view('admin.reservasi.edit', compact('reservasi', 'pegawais', 'layanans'));
     }
 
@@ -240,6 +249,74 @@ class ReservasiController extends Controller
     {
         $reservasi->delete();
         return back()->with('success', 'Reservasi berhasil dihapus!');
+    }
+
+    /**
+     * Export data reservasi ke CSV (bisa dibuka di Excel).
+     * Filter query sama dengan index.
+     */
+    public function exportCsv(Request $request)
+    {
+        $query = Reservasi::with(['pegawaiPJ.user']);
+
+        if ($request->filled('jenis'))   $query->where('jenis', $request->jenis);
+        if ($request->filled('status'))  $query->where('status', $request->status);
+        if ($request->filled('tanggal_dari')) $query->whereDate('tanggal', '>=', $request->tanggal_dari);
+        if ($request->filled('tanggal_sampai')) $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
+
+        $reservasis = $query->latest()->get();
+
+        $filename = 'reservasi_' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($reservasis) {
+            $handle = fopen('php://output', 'w');
+            // BOM agar Excel baca UTF-8 dengan benar
+            fputs($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, ['No', 'Pelanggan', 'Tanggal', 'Jam', 'Jenis', 'Status', 'Pembayaran', 'Jumlah Bayar', 'Total Harga', 'Pegawai PJ']);
+
+            foreach ($reservasis as $i => $r) {
+                fputcsv($handle, [
+                    $i + 1,
+                    $r->name_pelanggan,
+                    Carbon::parse($r->tanggal)->format('d/m/Y'),
+                    Carbon::parse($r->jam)->format('H:i'),
+                    $r->jenis,
+                    $r->status,
+                    $r->status_pembayaran,
+                    number_format($r->jumlah_pembayaran, 0, ',', '.'),
+                    number_format($r->total_harga, 0, ',', '.'),
+                    $r->pegawaiPJ->user->name ?? '-',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Tampilan cetak (print-to-PDF via browser).
+     */
+    public function printView(Request $request)
+    {
+        $query = Reservasi::with(['pegawaiPJ.user']);
+
+        if ($request->filled('jenis'))   $query->where('jenis', $request->jenis);
+        if ($request->filled('status'))  $query->where('status', $request->status);
+        if ($request->filled('tanggal_dari')) $query->whereDate('tanggal', '>=', $request->tanggal_dari);
+        if ($request->filled('tanggal_sampai')) $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
+
+        $reservasis = $query->latest()->get();
+        $filters    = $request->only(['jenis', 'status', 'tanggal_dari', 'tanggal_sampai']);
+
+        return view('admin.reservasi.print', compact('reservasis', 'filters'));
     }
 
     /**

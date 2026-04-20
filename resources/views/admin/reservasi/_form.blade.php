@@ -82,12 +82,18 @@
         <select name="pegawai_pj_id" id="pegawai_pj_id" class="form-select select2">
             <option value="">-- Pilih terlebih dahulu atau cek ketersediaan --</option>
             @foreach($pegawais as $pegawai)
+                @php
+                    $hariTanggal = isset($reservasi)
+                        ? \App\Models\Pegawai::hariDariTanggal($reservasi->tanggal)
+                        : \App\Models\Pegawai::hariDariTanggal(now()->toDateString());
+                    $shiftHari = $pegawai->shiftPadaHari($hariTanggal);
+                @endphp
                 <option value="{{ $pegawai->id }}"
                     {{ old('pegawai_pj_id', $reservasi->pegawai_pj_id ?? '') == $pegawai->id ? 'selected' : '' }}>
                     {{ $pegawai->user->name }}
-                    @if($pegawai->shift)
-                        — Shift {{ $pegawai->shift->nama }}
-                        ({{ substr($pegawai->shift->waktu_mulai, 0, 5) }} - {{ substr($pegawai->shift->waktu_selesai, 0, 5) }})
+                    @if($shiftHari)
+                        — Shift {{ $shiftHari->nama }}
+                        ({{ substr($shiftHari->waktu_mulai, 0, 5) }} - {{ substr($shiftHari->waktu_selesai, 0, 5) }})
                     @endif
                 </option>
             @endforeach
@@ -102,10 +108,16 @@
         <label class="form-label">Pegawai Helper</label>
         <select name="pegawai_helper_id[]" id="pegawai_helper_id" class="form-select select2" multiple>
             @foreach($pegawais as $pegawai)
+                @php
+                    $hariHelper = isset($reservasi)
+                        ? \App\Models\Pegawai::hariDariTanggal($reservasi->tanggal)
+                        : \App\Models\Pegawai::hariDariTanggal(now()->toDateString());
+                    $shiftHelper = $pegawai->shiftPadaHari($hariHelper);
+                @endphp
                 <option value="{{ $pegawai->id }}"
-                    data-shift="{{ $pegawai->shift->nama ?? '-' }}"
-                    data-mulai="{{ $pegawai->shift->waktu_mulai ?? '-' }}"
-                    data-selesai="{{ $pegawai->shift->waktu_selesai ?? '-' }}"
+                    data-shift="{{ $shiftHelper->nama ?? '-' }}"
+                    data-mulai="{{ $shiftHelper->waktu_mulai ?? '-' }}"
+                    data-selesai="{{ $shiftHelper->waktu_selesai ?? '-' }}"
                     @if(isset($reservasi) && in_array($pegawai->id, $reservasi->pegawai_helper_id))
                         selected
                     @endif>
