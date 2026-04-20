@@ -285,6 +285,9 @@
         })
         .then(res => res.json())
         .then(data => {
+            // Debug: buka DevTools Console untuk melihat ini
+            if (data._debug) console.table && console.log('[Slot Debug]', data._debug);
+
             if (!data.slots || data.slots.length === 0) {
                 showSlotState('empty');
                 return;
