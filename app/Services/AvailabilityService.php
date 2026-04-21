@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\JenisLayanan;
 use App\Models\Pegawai;
 use App\Models\Reservasi;
+use App\Models\SlotBlock;
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -67,6 +68,27 @@ class AvailabilityService
         }
 
         ksort($bySlot);
+
+        // Hapus slot yang masuk dalam rentang blokir admin
+        $blocks = SlotBlock::whereDate('tanggal', $tanggal)->get();
+        if ($blocks->isNotEmpty()) {
+            $base = Carbon::today()->toDateString();
+            foreach (array_keys($bySlot) as $slotTime) {
+                $slotStart = Carbon::parse($base . ' ' . $slotTime);
+                $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
+
+                foreach ($blocks as $block) {
+                    $blockStart = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
+                    $blockEnd   = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
+
+                    // Slot terblokir jika ada irisan dengan rentang blokir
+                    if ($slotStart->lt($blockEnd) && $blockStart->lt($slotEnd)) {
+                        unset($bySlot[$slotTime]);
+                        break;
+                    }
+                }
+            }
+        }
 
         return [
             'slots'        => array_keys($bySlot),

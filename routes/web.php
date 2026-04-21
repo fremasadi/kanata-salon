@@ -43,6 +43,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('reservasi/{reservasi}/selesai', [\App\Http\Controllers\Admin\ReservasiController::class, 'prosesSelesaiBayar'])->name('reservasi.selesai');
         Route::resource('reservasi', \App\Http\Controllers\Admin\ReservasiController::class);
 
+        Route::get('slot-block', [\App\Http\Controllers\Admin\SlotBlockController::class, 'index'])->name('slot-block.index');
+        Route::post('slot-block', [\App\Http\Controllers\Admin\SlotBlockController::class, 'store'])->name('slot-block.store');
+        Route::delete('slot-block/{slotBlock}', [\App\Http\Controllers\Admin\SlotBlockController::class, 'destroy'])->name('slot-block.destroy');
+
     });
     Route::middleware('role:pegawai')->prefix('pegawai')->name('pegawai.')->group(function () {
         Route::get('shift', [\App\Http\Controllers\Pegawai\ShiftController::class, 'index'])
