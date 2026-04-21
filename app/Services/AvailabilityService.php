@@ -21,11 +21,11 @@ class AvailabilityService
 
         $hari = Pegawai::hariDariTanggal($tanggal);
 
-        // Untuk checkout: ambil semua pegawai yang punya jadwal shift.
+        // Hanya pegawai yang punya jadwal shift di hari yang diminta.
         // Filter layanan tidak dilakukan di sini — penentuan pegawai per layanan
         // adalah tugas admin saat memulai layanan, bukan saat customer memilih slot.
         $pegawais = Pegawai::with(['jadwalShifts.shift', 'user'])
-            ->whereHas('jadwalShifts')
+            ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get();
 
         if ($pegawais->isEmpty()) {
