@@ -27,11 +27,11 @@
                     </a>
                 @endif
 
-                @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
+                {{-- @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
                     <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
                         <i class="bx bx-edit"></i> Edit
                     </a>
-                @endif
+                @endif --}}
 
                 <a href="{{ route('admin.reservasi.index') }}" class="btn btn-sm btn-secondary">
                     <i class="bx bx-arrow-back"></i> Kembali
