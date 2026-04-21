@@ -294,7 +294,7 @@
             elSelect.innerHTML = '<option value="">-- Pilih Jam --</option>';
             allSlots.forEach(slot => {
                 const opt = document.createElement('option');
-                opt.value = slot.status === 'available' ? slot.time : '';
+                opt.value = slot.time;
                 opt.disabled = slot.status !== 'available';
 
                 if (slot.status === 'available') {
