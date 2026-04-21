@@ -73,13 +73,13 @@
                                     Mengecek ketersediaan slot...
                                 </div>
 
-                                {{-- Slot tersedia --}}
+                                {{-- Slot select --}}
                                 <div id="slot-available" class="hidden">
-                                    <select name="jam" id="select-jam" required
+                                    <p id="slot-durasi-info" class="text-xs text-gray-500 mb-2"></p>
+                                    <select name="jam" id="select-jam"
                                         class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#EC008C] focus:border-transparent @error('jam') border-red-500 @enderror">
                                         <option value="">-- Pilih Jam --</option>
                                     </select>
-                                    <p id="slot-durasi-info" class="text-xs text-gray-500 mt-1"></p>
                                 </div>
 
                                 {{-- Tidak ada slot --}}
@@ -285,16 +285,26 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (!data.slots || data.slots.length === 0) {
+            const allSlots = data.all_slots ?? [];
+            if (allSlots.length === 0) {
                 showSlotState('empty');
                 return;
             }
 
             elSelect.innerHTML = '<option value="">-- Pilih Jam --</option>';
-            data.slots.forEach(slot => {
+            allSlots.forEach(slot => {
                 const opt = document.createElement('option');
-                opt.value = slot;
-                opt.textContent = slot;
+                opt.value = slot.status === 'available' ? slot.time : '';
+                opt.disabled = slot.status !== 'available';
+
+                if (slot.status === 'available') {
+                    opt.textContent = slot.time + ' WIB';
+                } else if (slot.status === 'full') {
+                    opt.textContent = slot.time + ' WIB — Penuh';
+                } else {
+                    opt.textContent = slot.time + ' WIB — Tutup';
+                }
+
                 elSelect.appendChild(opt);
             });
 
