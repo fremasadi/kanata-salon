@@ -109,6 +109,14 @@
                     <div>Manajemen Pengguna</div>
                 </a>
             </li>
+
+            {{-- Blokir Slot --}}
+            <li class="menu-item {{ request()->routeIs('admin.slot-block.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.slot-block.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-block"></i>
+                    <div>Blokir Slot</div>
+                </a>
+            </li>
         @endif
 
         {{-- Menu Pegawai Only --}}
