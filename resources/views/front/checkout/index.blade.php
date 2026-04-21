@@ -73,13 +73,17 @@
                                     Mengecek ketersediaan slot...
                                 </div>
 
-                                {{-- Slot select --}}
+                                {{-- Slot grid --}}
                                 <div id="slot-available" class="hidden">
-                                    <p id="slot-durasi-info" class="text-xs text-gray-500 mb-2"></p>
-                                    <select name="jam" id="select-jam"
-                                        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#EC008C] focus:border-transparent @error('jam') border-red-500 @enderror">
-                                        <option value="">-- Pilih Jam --</option>
-                                    </select>
+                                    <input type="hidden" name="jam" id="input-jam" value="{{ old('jam') }}">
+                                    <p id="slot-durasi-info" class="text-xs text-gray-500 mb-3"></p>
+                                    <div id="slot-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+                                    <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-500">
+                                        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-[#EC008C]"></span> Tersedia</span>
+                                        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-gray-300"></span> Penuh</span>
+                                        <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-red-300"></span> Tutup</span>
+                                    </div>
+                                    <p id="slot-required-msg" class="text-red-500 text-sm mt-2 hidden">Pilih jam reservasi terlebih dahulu.</p>
                                 </div>
 
                                 {{-- Tidak ada slot --}}
@@ -255,8 +259,10 @@
     const elAvailable   = document.getElementById('slot-available');
     const elEmpty       = document.getElementById('slot-empty');
     const elPlaceholder = document.getElementById('slot-placeholder');
-    const elSelect      = document.getElementById('select-jam');
+    const elGrid        = document.getElementById('slot-grid');
+    const elInputJam    = document.getElementById('input-jam');
     const elDurasi      = document.getElementById('slot-durasi-info');
+    const elReqMsg      = document.getElementById('slot-required-msg');
 
     function showSlotState(state) {
         elLoading.classList.add('hidden');
@@ -270,9 +276,51 @@
         if (state === 'placeholder') elPlaceholder.classList.remove('hidden');
     }
 
+    function selectSlot(time, btn) {
+        elGrid.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('ring-2', 'ring-[#EC008C]', 'scale-95'));
+        elInputJam.value = time;
+        btn.classList.add('ring-2', 'ring-[#EC008C]', 'scale-95');
+        if (elReqMsg) elReqMsg.classList.add('hidden');
+    }
+
+    function buildGrid(allSlots, oldJam) {
+        elGrid.innerHTML = '';
+        allSlots.forEach(slot => {
+            const btn = document.createElement('button');
+            btn.type        = 'button';
+            btn.dataset.time = slot.time;
+            btn.classList.add('slot-btn', 'relative', 'flex', 'flex-col', 'items-center', 'justify-center',
+                              'rounded-xl', 'border-2', 'px-2', 'py-2', 'text-sm', 'font-semibold',
+                              'transition', 'select-none');
+
+            if (slot.status === 'available') {
+                btn.classList.add('border-[#EC008C]', 'text-[#EC008C]', 'bg-white',
+                                  'hover:bg-[#EC008C]', 'hover:text-white', 'cursor-pointer');
+                btn.innerHTML = '<span>' + slot.time + '</span>';
+                btn.addEventListener('click', () => selectSlot(slot.time, btn));
+                if (oldJam === slot.time) {
+                    elInputJam.value = slot.time;
+                    btn.classList.add('ring-2', 'ring-[#EC008C]', 'scale-95');
+                }
+            } else if (slot.status === 'full') {
+                btn.disabled = true;
+                btn.classList.add('border-gray-200', 'bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btn.innerHTML = '<span>' + slot.time + '</span>'
+                              + '<span style="font-size:10px;font-weight:400;margin-top:2px;">Penuh</span>';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('border-red-200', 'bg-red-50', 'text-red-400', 'cursor-not-allowed');
+                btn.innerHTML = '<span>' + slot.time + '</span>'
+                              + '<span style="font-size:10px;font-weight:400;margin-top:2px;">Tutup</span>';
+            }
+
+            elGrid.appendChild(btn);
+        });
+    }
+
     function fetchSlots(tanggal) {
         showSlotState('loading');
-        elSelect.required = false;
+        elInputJam.value = '';
 
         fetch('{{ route('checkout.available-slots') }}', {
             method: 'POST',
@@ -291,29 +339,9 @@
                 return;
             }
 
-            elSelect.innerHTML = '<option value="">-- Pilih Jam --</option>';
-            allSlots.forEach(slot => {
-                const opt = document.createElement('option');
-                opt.value = slot.time;
-                opt.disabled = slot.status !== 'available';
-
-                if (slot.status === 'available') {
-                    opt.textContent = slot.time + ' WIB';
-                } else if (slot.status === 'full') {
-                    opt.textContent = slot.time + ' WIB — Penuh';
-                } else {
-                    opt.textContent = slot.time + ' WIB — Tutup';
-                }
-
-                elSelect.appendChild(opt);
-            });
-
+            buildGrid(allSlots, '{{ old('jam') }}');
             elDurasi.textContent = 'Total durasi layanan Anda: ' + data.total_durasi + ' menit';
-            elSelect.required = true;
             showSlotState('available');
-
-            const oldJam = '{{ old('jam') }}';
-            if (oldJam) elSelect.value = oldJam;
         })
         .catch(() => {
             showSlotState('empty');
@@ -324,6 +352,14 @@
     document.getElementById('input-tanggal').addEventListener('change', function () {
         if (this.value) fetchSlots(this.value);
         else showSlotState('placeholder');
+    });
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        if (!elAvailable.classList.contains('hidden') && !elInputJam.value) {
+            e.preventDefault();
+            elReqMsg.classList.remove('hidden');
+            elAvailable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
 
     const existingTanggal = document.getElementById('input-tanggal').value;
