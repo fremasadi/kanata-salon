@@ -87,11 +87,43 @@ class AvailabilityService
         ksort($allSlotTimes);
         ksort($bySlot);
 
+        // Slot full jika jumlah reservasi aktif (assigned + unassigned) >= pegawai bebas
+        // Reservasi yg sudah assign PJ sudah otomatis memblokir pegawainya di atas.
+        // Yang perlu dicek adalah reservasi tanpa PJ — masing-masing "memesan" 1 kapasitas.
+        $unassigned = $reservasiAktif->filter(fn($r) => empty($r->pegawai_pj_id));
+        if ($unassigned->isNotEmpty()) {
+            foreach (array_keys($bySlot) as $slotTime) {
+                $conflictCount = 0;
+                foreach ($unassigned as $res) {
+                    if ($this->hasConflict($slotTime, $totalDurasi, collect([$res]))) {
+                        $conflictCount++;
+                    }
+                }
+                if ($conflictCount >= count($bySlot[$slotTime])) {
+                    unset($bySlot[$slotTime]);
+                }
+            }
+        }
+
         // Tentukan slot yang diblokir admin dan hapus dari bySlot
-        $blocks          = SlotBlock::whereDate('tanggal', $tanggal)->get();
+        $blocks           = SlotBlock::where('tanggal', $tanggal)->get();
         $blockedSlotTimes = [];
 
         if ($blocks->isNotEmpty()) {
+            // Pastikan setiap slot dalam rentang block masuk ke allSlotTimes
+            // (termasuk slot di luar shift pegawai agar tetap tampil sebagai "Tutup")
+            foreach ($blocks as $block) {
+                $bStart  = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
+                $bEnd    = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
+                $current = $bStart->copy();
+                while ($current->lt($bEnd)) {
+                    $allSlotTimes[$current->format('H:i')] = true;
+                    $current->addMinutes(self::SLOT_INTERVAL);
+                }
+            }
+
+            ksort($allSlotTimes);
+
             foreach (array_keys($allSlotTimes) as $slotTime) {
                 $slotStart = Carbon::parse($base . ' ' . $slotTime);
                 $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
