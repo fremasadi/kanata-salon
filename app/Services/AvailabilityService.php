@@ -32,9 +32,9 @@ class AvailabilityService
             return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
+        // Ambil semua reservasi aktif — butuh seluruh data untuk cek PJ dan helper sekaligus
         $reservasiAktif = Reservasi::where('tanggal', $tanggal)
             ->whereNotIn('status', ['Batal', 'Selesai'])
-            ->whereNotNull('pegawai_pj_id')
             ->get();
 
         $bySlot = [];
@@ -43,11 +43,21 @@ class AvailabilityService
             $shift = $pegawai->shiftPadaHari($hari);
             if (!$shift) continue;
 
-            $slots            = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
-            $reservasiPegawai = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
+            $slots = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
+
+            // Pegawai dianggap "tidak bebas" (tidak bisa jadi PJ baru) jika:
+            // - sudah jadi PJ di reservasi lain pada rentang waktu itu, ATAU
+            // - sudah jadi helper di reservasi lain pada rentang waktu itu
+            $reservasiBlocking = $reservasiAktif
+                ->where('pegawai_pj_id', $pegawai->id)
+                ->merge(
+                    $reservasiAktif->filter(
+                        fn($r) => in_array($pegawai->id, $r->pegawai_helper_id ?? [])
+                    )
+                );
 
             foreach ($slots as $slotTime) {
-                if ($this->hasConflict($slotTime, $totalDurasi, $reservasiPegawai)) continue;
+                if ($this->hasConflict($slotTime, $totalDurasi, $reservasiBlocking)) continue;
 
                 $bySlot[$slotTime][] = [
                     'id'   => $pegawai->id,
@@ -68,6 +78,11 @@ class AvailabilityService
     /**
      * Ambil pegawai tersedia untuk tanggal, jam, dan layanan tertentu.
      * Digunakan AJAX di form admin reservasi.
+     *
+     * Mengembalikan dua list terpisah:
+     *   pj     → benar-benar bebas (tidak PJ dan tidak helper di jam itu) → bisa ditunjuk PJ
+     *   helper → tidak sedang jadi PJ di jam itu → bisa ditunjuk helper
+     *            (sudah_helper = true jika sudah jadi helper di reservasi lain di jam itu)
      */
     public function getAvailablePegawaiForSlot(string $tanggal, string $jam, array $layananIds, ?int $excludeId = null): array
     {
@@ -80,15 +95,14 @@ class AvailabilityService
             ->whereHas('jadwalShifts', fn($q) => $q->where('hari', $hari))
             ->get();
 
-        if ($pegawais->isEmpty()) return [];
+        if ($pegawais->isEmpty()) return ['pj' => [], 'helper' => []];
 
         $base      = Carbon::today()->toDateString();
         $slotStart = Carbon::parse($base . ' ' . $jam);
         $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
 
         $query = Reservasi::where('tanggal', $tanggal)
-            ->whereNotIn('status', ['Batal', 'Selesai'])
-            ->whereNotNull('pegawai_pj_id');
+            ->whereNotIn('status', ['Batal', 'Selesai']);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -96,7 +110,8 @@ class AvailabilityService
 
         $reservasiAktif = $query->get();
 
-        $result = [];
+        $pjList     = [];
+        $helperList = [];
 
         foreach ($pegawais as $pegawai) {
             $shift = $pegawai->shiftPadaHari($hari);
@@ -108,17 +123,38 @@ class AvailabilityService
 
             if ($slotStart->lt($shiftStart) || $slotEnd->gt($shiftEnd)) continue;
 
-            $reservasiPegawai = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
-            if ($this->hasConflict($jam, $totalDurasi, $reservasiPegawai)) continue;
+            $shiftLabel = $shift->nama . ' (' . substr($shift->waktu_mulai, 0, 5) . '–' . substr($shift->waktu_selesai, 0, 5) . ' WIB)';
 
-            $result[] = [
-                'id'    => $pegawai->id,
-                'nama'  => $pegawai->user->name ?? 'Pegawai #' . $pegawai->id,
-                'shift' => $shift->nama . ' (' . substr($shift->waktu_mulai, 0, 5) . ' - ' . substr($shift->waktu_selesai, 0, 5) . ')',
-            ];
+            $reservasiSebagaiPJ = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
+            $reservasiSebagaiHelper = $reservasiAktif->filter(
+                fn($r) => in_array($pegawai->id, $r->pegawai_helper_id ?? [])
+            );
+
+            $isPJConflict     = $this->hasConflict($jam, $totalDurasi, $reservasiSebagaiPJ);
+            $isHelperConflict = $this->hasConflict($jam, $totalDurasi, $reservasiSebagaiHelper);
+
+            // Kandidat PJ: tidak sedang PJ dan tidak sedang helper di jam itu
+            if (!$isPJConflict && !$isHelperConflict) {
+                $pjList[] = [
+                    'id'    => $pegawai->id,
+                    'nama'  => $pegawai->user->name ?? 'Pegawai #' . $pegawai->id,
+                    'shift' => $shiftLabel,
+                ];
+            }
+
+            // Kandidat helper: tidak sedang PJ di jam itu
+            // (boleh sudah helper di tempat lain — ditandai dengan sudah_helper)
+            if (!$isPJConflict) {
+                $helperList[] = [
+                    'id'           => $pegawai->id,
+                    'nama'         => $pegawai->user->name ?? 'Pegawai #' . $pegawai->id,
+                    'shift'        => $shiftLabel,
+                    'sudah_helper' => $isHelperConflict,
+                ];
+            }
         }
 
-        return $result;
+        return ['pj' => $pjList, 'helper' => $helperList];
     }
 
     private function generateSlots(string $waktuMulai, string $waktuSelesai, int $durasiMenit): array
