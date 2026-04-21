@@ -30,7 +30,7 @@ class AvailabilityService
             ->get();
 
         if ($pegawais->isEmpty()) {
-            return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
+            return ['slots' => [], 'all_slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
         // Ambil semua reservasi aktif — butuh seluruh data untuk cek PJ dan helper sekaligus
@@ -38,7 +38,15 @@ class AvailabilityService
             ->whereNotIn('status', ['Batal', 'Selesai'])
             ->get();
 
-        $bySlot = [];
+        $base = Carbon::today()->toDateString();
+
+        // Untuk hari ini: batas waktu minimum = sekarang + 30 menit buffer
+        $isToday   = $tanggal === $base;
+        $cutoff    = $isToday ? Carbon::now()->addMinutes(30) : null;
+
+        // Kumpulkan semua slot teoritis (union semua shift hari ini)
+        $allSlotTimes = [];
+        $bySlot       = [];
 
         foreach ($pegawais as $pegawai) {
             $shift = $pegawai->shiftPadaHari($hari);
@@ -46,9 +54,18 @@ class AvailabilityService
 
             $slots = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
 
-            // Pegawai dianggap "tidak bebas" (tidak bisa jadi PJ baru) jika:
-            // - sudah jadi PJ di reservasi lain pada rentang waktu itu, ATAU
-            // - sudah jadi helper di reservasi lain pada rentang waktu itu
+            // Filter slot yang sudah lewat untuk hari ini
+            if ($cutoff) {
+                $slots = array_filter($slots, function ($slotTime) use ($base, $cutoff) {
+                    return Carbon::parse($base . ' ' . $slotTime)->gt($cutoff);
+                });
+            }
+
+            foreach ($slots as $s) {
+                $allSlotTimes[$s] = true;
+            }
+
+            // Pegawai dianggap "tidak bebas" jika sudah PJ atau helper di jam itu
             $reservasiBlocking = $reservasiAktif
                 ->where('pegawai_pj_id', $pegawai->id)
                 ->merge(
@@ -67,13 +84,15 @@ class AvailabilityService
             }
         }
 
+        ksort($allSlotTimes);
         ksort($bySlot);
 
-        // Hapus slot yang masuk dalam rentang blokir admin
-        $blocks = SlotBlock::whereDate('tanggal', $tanggal)->get();
+        // Tentukan slot yang diblokir admin dan hapus dari bySlot
+        $blocks          = SlotBlock::whereDate('tanggal', $tanggal)->get();
+        $blockedSlotTimes = [];
+
         if ($blocks->isNotEmpty()) {
-            $base = Carbon::today()->toDateString();
-            foreach (array_keys($bySlot) as $slotTime) {
+            foreach (array_keys($allSlotTimes) as $slotTime) {
                 $slotStart = Carbon::parse($base . ' ' . $slotTime);
                 $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
 
@@ -81,8 +100,8 @@ class AvailabilityService
                     $blockStart = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
                     $blockEnd   = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
 
-                    // Slot terblokir jika ada irisan dengan rentang blokir
                     if ($slotStart->lt($blockEnd) && $blockStart->lt($slotEnd)) {
+                        $blockedSlotTimes[$slotTime] = true;
                         unset($bySlot[$slotTime]);
                         break;
                     }
@@ -90,8 +109,21 @@ class AvailabilityService
             }
         }
 
+        // Bangun all_slots: semua slot teoritis dengan status masing-masing
+        $allSlotsResult = [];
+        foreach (array_keys($allSlotTimes) as $slotTime) {
+            $isBlocked   = isset($blockedSlotTimes[$slotTime]);
+            $isAvailable = !$isBlocked && isset($bySlot[$slotTime]);
+
+            $allSlotsResult[] = [
+                'time'   => $slotTime,
+                'status' => $isBlocked ? 'blocked' : ($isAvailable ? 'available' : 'full'),
+            ];
+        }
+
         return [
             'slots'        => array_keys($bySlot),
+            'all_slots'    => $allSlotsResult,
             'by_slot'      => $bySlot,
             'total_durasi' => $totalDurasi,
         ];
