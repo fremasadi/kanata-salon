@@ -101,9 +101,12 @@ class ReservasiController extends Controller
 
     public function show(Reservasi $reservasi)
     {
-        $layananList = $reservasi->layananList();
-        $helperList  = $reservasi->pegawaiHelpers();
-        return view('admin.reservasi.show', compact('reservasi', 'layananList', 'helperList'));
+        $layananList         = $reservasi->layananList();
+        $helperList          = $reservasi->pegawaiHelpers();
+        $pembayarans         = $reservasi->pembayarans()->orderBy('created_at')->get();
+        $dpPembayaran        = $pembayarans->first(fn($p) => $p->type !== 'pelunasan');
+        $pelunasanPembayaran = $pembayarans->first(fn($p) => $p->type === 'pelunasan');
+        return view('admin.reservasi.show', compact('reservasi', 'layananList', 'helperList', 'dpPembayaran', 'pelunasanPembayaran'));
     }
 
     public function edit(Reservasi $reservasi)

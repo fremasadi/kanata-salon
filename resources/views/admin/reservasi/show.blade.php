@@ -101,52 +101,117 @@
                 {{-- Info Pembayaran --}}
                 <div class="col-md-6">
                     <div class="card border h-100">
-                        <div class="card-header fw-semibold bg-light">Informasi Pembayaran</div>
+                        <div class="card-header fw-semibold bg-light d-flex justify-content-between align-items-center">
+                            <span>Informasi Pembayaran</span>
+                            <span class="badge {{ $reservasi->status_pembayaran == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }} fs-6">
+                                {{ $reservasi->status_pembayaran }}
+                            </span>
+                        </div>
                         <div class="card-body">
-                            <table class="table table-borderless table-sm mb-0">
+                            @php $sisa = $reservasi->total_harga - $reservasi->jumlah_pembayaran; @endphp
+
+                            {{-- Ringkasan --}}
+                            <table class="table table-borderless table-sm mb-3">
                                 <tr>
                                     <td class="text-muted" width="45%">Total Harga</td>
                                     <td>: <strong>Rp {{ $reservasi->total_harga_formatted }}</strong></td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">Status Pembayaran</td>
-                                    <td>:
-                                        <span class="badge {{ $reservasi->status_pembayaran == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                            {{ $reservasi->status_pembayaran }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Jumlah Dibayar</td>
-                                    <td>: Rp {{ $reservasi->jumlah_pembayaran_formatted }}</td>
+                                    <td class="text-muted">Sudah Dibayar</td>
+                                    <td>: <span class="text-success fw-semibold">Rp {{ $reservasi->jumlah_pembayaran_formatted }}</span></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Sisa Tagihan</td>
                                     <td>:
-                                        @php $sisa = $reservasi->total_harga - $reservasi->jumlah_pembayaran; @endphp
-                                        <span class="{{ $sisa > 0 ? 'text-danger fw-semibold' : 'text-success' }}">
+                                        <span class="{{ $sisa > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold' }}">
                                             Rp {{ number_format($sisa, 0, ',', '.') }}
                                         </span>
                                     </td>
                                 </tr>
-                                @if($reservasi->pembayaran)
-                                <tr>
-                                    <td class="text-muted">Metode</td>
-                                    <td>: {{ strtoupper($reservasi->pembayaran->payment_type ?? '-') }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Status Transaksi</td>
-                                    <td>:
-                                        <span class="badge
-                                            @if($reservasi->pembayaran->transaction_status == 'settlement') bg-success
-                                            @elseif($reservasi->pembayaran->transaction_status == 'pending') bg-warning text-dark
-                                            @else bg-danger @endif">
-                                            {{ ucfirst($reservasi->pembayaran->transaction_status ?? '-') }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                @endif
                             </table>
+
+                            <hr class="my-2">
+
+                            {{-- DP / Pembayaran Pertama --}}
+                            @if($dpPembayaran)
+                                <p class="mb-1 text-muted small fw-semibold text-uppercase">
+                                    <i class="bx bx-first-page me-1"></i>
+                                    {{ $reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP' ? 'Down Payment (DP)' : 'Pembayaran Pertama' }}
+                                </p>
+                                <table class="table table-borderless table-sm mb-3">
+                                    <tr>
+                                        <td class="text-muted ps-3" width="45%">Jumlah</td>
+                                        <td>: <strong>Rp {{ number_format($dpPembayaran->gross_amount, 0, ',', '.') }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted ps-3">Metode</td>
+                                        <td>: {{ strtoupper($dpPembayaran->payment_type ?? '-') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted ps-3">Status</td>
+                                        <td>:
+                                            <span class="badge
+                                                @if($dpPembayaran->transaction_status == 'settlement') bg-success
+                                                @elseif($dpPembayaran->transaction_status == 'pending') bg-warning text-dark
+                                                @else bg-danger @endif">
+                                                {{ ucfirst($dpPembayaran->transaction_status ?? '-') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @if($dpPembayaran->settlement_time)
+                                    <tr>
+                                        <td class="text-muted ps-3">Waktu</td>
+                                        <td>: {{ \Carbon\Carbon::parse($dpPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }} WIB</td>
+                                    </tr>
+                                    @endif
+                                </table>
+                            @else
+                                <p class="mb-1 text-muted small fw-semibold text-uppercase">
+                                    <i class="bx bx-first-page me-1"></i> Pembayaran Pertama
+                                </p>
+                                <p class="text-muted fst-italic ps-3 mb-3">Belum ada data pembayaran.</p>
+                            @endif
+
+                            {{-- Pelunasan --}}
+                            @if($pelunasanPembayaran)
+                                <hr class="my-2">
+                                <p class="mb-1 text-muted small fw-semibold text-uppercase">
+                                    <i class="bx bx-check-double me-1"></i> Pelunasan
+                                </p>
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="text-muted ps-3" width="45%">Jumlah</td>
+                                        <td>: <strong class="text-success">Rp {{ number_format($pelunasanPembayaran->gross_amount, 0, ',', '.') }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted ps-3">Metode</td>
+                                        <td>: {{ strtoupper($pelunasanPembayaran->payment_type ?? '-') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted ps-3">Status</td>
+                                        <td>:
+                                            <span class="badge
+                                                @if($pelunasanPembayaran->transaction_status == 'settlement') bg-success
+                                                @elseif($pelunasanPembayaran->transaction_status == 'pending') bg-warning text-dark
+                                                @else bg-danger @endif">
+                                                {{ ucfirst($pelunasanPembayaran->transaction_status ?? '-') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @if($pelunasanPembayaran->settlement_time)
+                                    <tr>
+                                        <td class="text-muted ps-3">Waktu</td>
+                                        <td>: {{ \Carbon\Carbon::parse($pelunasanPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }} WIB</td>
+                                    </tr>
+                                    @endif
+                                    @if($pelunasanPembayaran->notes)
+                                    <tr>
+                                        <td class="text-muted ps-3">Catatan</td>
+                                        <td>: {{ $pelunasanPembayaran->notes }}</td>
+                                    </tr>
+                                    @endif
+                                </table>
+                            @endif
                         </div>
                     </div>
                 </div>
