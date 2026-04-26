@@ -82,6 +82,18 @@ class Reservasi extends Model
 }
 
 
+    // Estimasi jam selesai = jam mulai + total durasi semua layanan
+    public function getEstimasiSelesaiAttribute(): ?string
+    {
+        $ids = $this->layanan_id;
+        if (empty($ids)) return null;
+
+        $durasi = JenisLayanan::whereIn('id', $ids)->sum('durasi_menit');
+        if (!$durasi) return null;
+
+        return \Carbon\Carbon::parse($this->jam)->addMinutes((int) $durasi)->format('H:i');
+    }
+
     // Getter format harga
     public function getTotalHargaFormattedAttribute()
     {

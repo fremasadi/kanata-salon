@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\JenisLayanan;
 use App\Models\Pegawai;
 use App\Models\Reservasi;
-use App\Models\SlotBlock;
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -30,7 +29,7 @@ class AvailabilityService
             ->get();
 
         if ($pegawais->isEmpty()) {
-            return ['slots' => [], 'all_slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
+            return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
         // Ambil semua reservasi aktif — butuh seluruh data untuk cek PJ dan helper sekaligus
@@ -38,15 +37,7 @@ class AvailabilityService
             ->whereNotIn('status', ['Batal', 'Selesai'])
             ->get();
 
-        $base = Carbon::today()->toDateString();
-
-        // Untuk hari ini: batas waktu minimum = sekarang + 30 menit buffer
-        $isToday   = $tanggal === $base;
-        $cutoff    = $isToday ? Carbon::now()->addMinutes(30) : null;
-
-        // Kumpulkan semua slot teoritis (union semua shift hari ini)
-        $allSlotTimes = [];
-        $bySlot       = [];
+        $bySlot = [];
 
         foreach ($pegawais as $pegawai) {
             $shift = $pegawai->shiftPadaHari($hari);
@@ -54,18 +45,9 @@ class AvailabilityService
 
             $slots = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
 
-            // Filter slot yang sudah lewat untuk hari ini
-            if ($cutoff) {
-                $slots = array_filter($slots, function ($slotTime) use ($base, $cutoff) {
-                    return Carbon::parse($base . ' ' . $slotTime)->gt($cutoff);
-                });
-            }
-
-            foreach ($slots as $s) {
-                $allSlotTimes[$s] = true;
-            }
-
-            // Pegawai dianggap "tidak bebas" jika sudah PJ atau helper di jam itu
+            // Pegawai dianggap "tidak bebas" (tidak bisa jadi PJ baru) jika:
+            // - sudah jadi PJ di reservasi lain pada rentang waktu itu, ATAU
+            // - sudah jadi helper di reservasi lain pada rentang waktu itu
             $reservasiBlocking = $reservasiAktif
                 ->where('pegawai_pj_id', $pegawai->id)
                 ->merge(
@@ -84,78 +66,10 @@ class AvailabilityService
             }
         }
 
-        ksort($allSlotTimes);
         ksort($bySlot);
-
-        // Slot full jika jumlah reservasi aktif (assigned + unassigned) >= pegawai bebas
-        // Reservasi yg sudah assign PJ sudah otomatis memblokir pegawainya di atas.
-        // Yang perlu dicek adalah reservasi tanpa PJ — masing-masing "memesan" 1 kapasitas.
-        $unassigned = $reservasiAktif->filter(fn($r) => empty($r->pegawai_pj_id));
-        if ($unassigned->isNotEmpty()) {
-            foreach (array_keys($bySlot) as $slotTime) {
-                $conflictCount = 0;
-                foreach ($unassigned as $res) {
-                    if ($this->hasConflict($slotTime, $totalDurasi, collect([$res]))) {
-                        $conflictCount++;
-                    }
-                }
-                if ($conflictCount >= count($bySlot[$slotTime])) {
-                    unset($bySlot[$slotTime]);
-                }
-            }
-        }
-
-        // Tentukan slot yang diblokir admin dan hapus dari bySlot
-        $blocks           = SlotBlock::where('tanggal', $tanggal)->get();
-        $blockedSlotTimes = [];
-
-        if ($blocks->isNotEmpty()) {
-            // Pastikan setiap slot dalam rentang block masuk ke allSlotTimes
-            // (termasuk slot di luar shift pegawai agar tetap tampil sebagai "Tutup")
-            foreach ($blocks as $block) {
-                $bStart  = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
-                $bEnd    = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
-                $current = $bStart->copy();
-                while ($current->lt($bEnd)) {
-                    $allSlotTimes[$current->format('H:i')] = true;
-                    $current->addMinutes(self::SLOT_INTERVAL);
-                }
-            }
-
-            ksort($allSlotTimes);
-
-            foreach (array_keys($allSlotTimes) as $slotTime) {
-                $slotStart = Carbon::parse($base . ' ' . $slotTime);
-                $slotEnd   = $slotStart->copy()->addMinutes($totalDurasi);
-
-                foreach ($blocks as $block) {
-                    $blockStart = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
-                    $blockEnd   = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
-
-                    if ($slotStart->lt($blockEnd) && $blockStart->lt($slotEnd)) {
-                        $blockedSlotTimes[$slotTime] = true;
-                        unset($bySlot[$slotTime]);
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Bangun all_slots: semua slot teoritis dengan status masing-masing
-        $allSlotsResult = [];
-        foreach (array_keys($allSlotTimes) as $slotTime) {
-            $isBlocked   = isset($blockedSlotTimes[$slotTime]);
-            $isAvailable = !$isBlocked && isset($bySlot[$slotTime]);
-
-            $allSlotsResult[] = [
-                'time'   => $slotTime,
-                'status' => $isBlocked ? 'blocked' : ($isAvailable ? 'available' : 'full'),
-            ];
-        }
 
         return [
             'slots'        => array_keys($bySlot),
-            'all_slots'    => $allSlotsResult,
             'by_slot'      => $bySlot,
             'total_durasi' => $totalDurasi,
         ];

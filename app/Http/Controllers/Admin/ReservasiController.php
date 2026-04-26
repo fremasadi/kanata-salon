@@ -17,6 +17,7 @@ class ReservasiController extends Controller
     public function index(Request $request)
     {
         $query = Reservasi::with(['pegawaiPJ.user']);
+        if ($request->filled('search'))  $query->where('name_pelanggan', 'like', '%' . $request->search . '%');
         if ($request->filled('jenis'))   $query->where('jenis', $request->jenis);
         if ($request->filled('status'))  $query->where('status', $request->status);
         if ($request->filled('status_pembayaran')) $query->where('status_pembayaran', $request->status_pembayaran);
