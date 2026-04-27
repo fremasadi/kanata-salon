@@ -73,11 +73,24 @@ class AvailabilityService
 
         ksort($allPossibleSlots);
 
+        // Reservasi tanpa pegawai_pj_id masih mengonsumsi 1 kapasitas pegawai.
+        // Harus diperhitungkan agar slot tidak terlihat kosong padahal penuh.
+        $reservasiTanpaPJ = $reservasiAktif->whereNull('pegawai_pj_id');
+
         $allSlotsFormatted = [];
         foreach (array_keys($allPossibleSlots) as $time) {
+            $freeEmployees = count($bySlot[$time] ?? []);
+
+            // Kurangi kapasitas untuk setiap reservasi tanpa PJ yang overlap dengan slot ini
+            foreach ($reservasiTanpaPJ as $res) {
+                if ($this->hasConflict($time, $totalDurasi, collect([$res]))) {
+                    $freeEmployees--;
+                }
+            }
+
             $allSlotsFormatted[] = [
                 'time'   => $time,
-                'status' => isset($bySlot[$time]) ? 'available' : 'full',
+                'status' => $freeEmployees > 0 ? 'available' : 'full',
             ];
         }
 
