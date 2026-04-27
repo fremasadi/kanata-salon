@@ -29,7 +29,7 @@ class AvailabilityService
             ->get();
 
         if ($pegawais->isEmpty()) {
-            return ['slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
+            return ['all_slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
         // Ambil semua reservasi aktif — butuh seluruh data untuk cek PJ dan helper sekaligus
@@ -37,6 +37,7 @@ class AvailabilityService
             ->whereNotIn('status', ['Batal', 'Selesai'])
             ->get();
 
+        $allPossibleSlots = [];
         $bySlot = [];
 
         foreach ($pegawais as $pegawai) {
@@ -44,6 +45,10 @@ class AvailabilityService
             if (!$shift) continue;
 
             $slots = $this->generateSlots($shift->waktu_mulai, $shift->waktu_selesai, $totalDurasi);
+
+            foreach ($slots as $slotTime) {
+                $allPossibleSlots[$slotTime] = true;
+            }
 
             // Pegawai dianggap "tidak bebas" (tidak bisa jadi PJ baru) jika:
             // - sudah jadi PJ di reservasi lain pada rentang waktu itu, ATAU
@@ -66,10 +71,18 @@ class AvailabilityService
             }
         }
 
-        ksort($bySlot);
+        ksort($allPossibleSlots);
+
+        $allSlotsFormatted = [];
+        foreach (array_keys($allPossibleSlots) as $time) {
+            $allSlotsFormatted[] = [
+                'time'   => $time,
+                'status' => isset($bySlot[$time]) ? 'available' : 'full',
+            ];
+        }
 
         return [
-            'slots'        => array_keys($bySlot),
+            'all_slots'    => $allSlotsFormatted,
             'by_slot'      => $bySlot,
             'total_durasi' => $totalDurasi,
         ];
