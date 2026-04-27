@@ -32,9 +32,10 @@ class AvailabilityService
             return ['all_slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
-        // Ambil semua reservasi aktif — butuh seluruh data untuk cek PJ dan helper sekaligus
+        // Ambil reservasi yang masih mengonsumsi slot — Selesai tetap dihitung
+        // karena slotnya sudah terpakai. Hanya Batal yang benar-benar membebaskan slot.
         $reservasiAktif = Reservasi::where('tanggal', $tanggal)
-            ->whereNotIn('status', ['Batal', 'Selesai'])
+            ->where('status', '!=', 'Batal')
             ->get();
 
         $allPossibleSlots = [];
