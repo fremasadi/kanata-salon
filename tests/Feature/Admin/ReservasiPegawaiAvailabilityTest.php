@@ -324,3 +324,54 @@ it('tetap membuka slot jika pegawai yang overlap hanya sedang menjadi helper', f
     expect($slot1430['status'] ?? null)->toBe('available');
     expect($slot1530['status'] ?? null)->toBe('available');
 });
+
+it('reservasi tanpa pj hanya memblok jam mulai yang sama', function () {
+    createPegawaiDenganShift();
+    createPegawaiDenganShift();
+
+    $layanan = JenisLayanan::create([
+        'name' => 'Hair Spa',
+        'harga' => 150000,
+        'harga_max' => 150000,
+        'jenis' => 'Treatment',
+        'durasi_menit' => 240,
+        'deskripsi' => 'Perawatan rambut',
+        'kategori' => 'Tunggal',
+        'image' => [],
+    ]);
+
+    Reservasi::create([
+        'name_pelanggan' => 'Karina',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-07',
+        'jam' => '15:30:00',
+        'jenis' => 'Online',
+        'status' => 'Dikonfirmasi',
+        'status_pembayaran' => 'DP',
+        'jumlah_pembayaran' => 50000,
+        'total_harga' => 200000,
+        'pegawai_pj_id' => null,
+        'pegawai_helper_id' => [],
+    ]);
+
+    Reservasi::create([
+        'name_pelanggan' => 'Karina',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-07',
+        'jam' => '15:30:00',
+        'jenis' => 'Online',
+        'status' => 'Dikonfirmasi',
+        'status_pembayaran' => 'DP',
+        'jumlah_pembayaran' => 50000,
+        'total_harga' => 200000,
+        'pegawai_pj_id' => null,
+        'pegawai_helper_id' => [],
+    ]);
+
+    $slots = (new AvailabilityService())->getAvailableSlots('2026-05-07', [$layanan->id]);
+    $slot1430 = collect($slots['all_slots'])->firstWhere('time', '14:30');
+    $slot1530 = collect($slots['all_slots'])->firstWhere('time', '15:30');
+
+    expect($slot1430['status'] ?? null)->toBe('available');
+    expect($slot1530['status'] ?? null)->toBe('full');
+});
