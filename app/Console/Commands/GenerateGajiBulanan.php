@@ -13,8 +13,6 @@ class GenerateGajiBulanan extends Command
     protected $signature = 'gaji:generate';
     protected $description = 'Generate & backfill gaji bulanan untuk semua pegawai, bersihkan duplikat';
 
-    public const GAJI_POKOK = 1200000;
-
     public function handle()
     {
         $today    = Carbon::today();
@@ -88,14 +86,15 @@ class GenerateGajiBulanan extends Command
                 if ($exists) continue;
 
                 $totalKomisi = $this->hitungKomisi($pegawai->id, $periodeMulai, $periodeSelesai);
+                $gajiPokok   = $pegawai->getGajiPokokByJabatan();
 
                 Gaji::create([
                     'pegawai_id'      => $pegawai->id,
                     'periode_mulai'   => $periodeMulai,
                     'periode_selesai' => $periodeSelesai,
-                    'gaji_pokok'      => self::GAJI_POKOK,
+                    'gaji_pokok'      => $gajiPokok,
                     'total_komisi'    => $totalKomisi,
-                    'total_gaji'      => self::GAJI_POKOK + $totalKomisi,
+                    'total_gaji'      => $gajiPokok + $totalKomisi,
                     'status'          => 'Draft',
                 ]);
 
@@ -119,9 +118,12 @@ class GenerateGajiBulanan extends Command
             if (!$gaji) continue;
 
             $totalKomisi = $this->hitungKomisi($pegawai->id, $periodeMulai, $periodeSelesai);
+            $gajiPokok   = $pegawai->getGajiPokokByJabatan();
+
             $gaji->update([
+                'gaji_pokok'   => $gajiPokok,
                 'total_komisi' => $totalKomisi,
-                'total_gaji'   => self::GAJI_POKOK + $totalKomisi,
+                'total_gaji'   => $gajiPokok + $totalKomisi,
             ]);
         }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\JenisController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\PegawaiController;
 use App\Http\Controllers\Admin\GajiController;
+use App\Http\Controllers\Admin\SettingGajiController;
 use App\Http\Controllers\Front\FrontController;
 use App\Http\Controllers\Front\CartController;
 use App\Http\Controllers\PaymentController;
@@ -28,6 +29,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('komisi/export-csv', [\App\Http\Controllers\Admin\KomisiController::class, 'exportCsv'])->name('komisi.export-csv');
         Route::get('komisi/print', [\App\Http\Controllers\Admin\KomisiController::class, 'printView'])->name('komisi.print');
         Route::get('gaji', [GajiController::class, 'index'])->name('gaji.index');
+        Route::post('gaji/generate', [GajiController::class, 'generate'])->name('gaji.generate');
         Route::get('gaji/export-csv', [GajiController::class, 'exportCsv'])->name('gaji.export-csv');
         Route::get('gaji/print', [GajiController::class, 'printView'])->name('gaji.print');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
@@ -46,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('slot-block', [\App\Http\Controllers\Admin\SlotBlockController::class, 'index'])->name('slot-block.index');
         Route::post('slot-block', [\App\Http\Controllers\Admin\SlotBlockController::class, 'store'])->name('slot-block.store');
         Route::delete('slot-block/{slotBlock}', [\App\Http\Controllers\Admin\SlotBlockController::class, 'destroy'])->name('slot-block.destroy');
+        Route::get('setting-gaji', [SettingGajiController::class, 'index'])->name('setting-gaji.index');
+        Route::put('setting-gaji/{settingGaji}', [SettingGajiController::class, 'update'])->name('setting-gaji.update');
 
     });
     Route::middleware('role:pegawai')->prefix('pegawai')->name('pegawai.')->group(function () {

@@ -151,12 +151,14 @@ class ReservasiController extends Controller
                 'pegawai_id' => $pegawaiId,
                 'periode_mulai' => $periodeMulai,
                 'periode_selesai' => $periodeSelesai,
-                'gaji_pokok' => 0,
+                'gaji_pokok' => $pegawai->getGajiPokokByJabatan(),
                 'total_komisi' => 0,
                 'total_gaji' => 0,
                 'status' => 'Draft',
             ]);
         }
+
+        $gaji->gaji_pokok = $pegawai->getGajiPokokByJabatan();
 
         // Tambahkan komisi baru ke total komisi yang sudah ada
         $gaji->total_komisi += $jumlahKomisi;

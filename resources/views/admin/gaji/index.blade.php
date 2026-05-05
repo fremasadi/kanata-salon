@@ -5,6 +5,12 @@
                 <i class="bx bx-money me-2"></i> Daftar Gaji Pegawai
             </h5>
             <div class="d-flex gap-2">
+                <form method="POST" action="{{ route('admin.gaji.generate') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Jalankan generate gaji bulanan sekarang?')">
+                        <i class="bx bx-play-circle"></i> Generate Gaji
+                    </button>
+                </form>
                 <a href="{{ route('admin.gaji.export-csv', request()->query()) }}" class="btn btn-success btn-sm">
                     <i class="bx bx-spreadsheet"></i> Export Excel
                 </a>
@@ -13,6 +19,37 @@
                 </a>
             </div>
         </div>
+
+        @if(session('success'))
+            <div class="card-body pb-0">
+                <div class="alert alert-success alert-dismissible" role="alert">
+                    <i class="bx bx-check-circle me-1"></i>
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="card-body pb-0">
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <i class="bx bx-error-circle me-1"></i>
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
+        @if(session('command_output'))
+            <div class="card-body pt-3 pb-0">
+                <div class="alert alert-info mb-0">
+                    <div class="fw-semibold mb-2">
+                        <i class="bx bx-terminal me-1"></i> Hasil Generate
+                    </div>
+                    <pre class="mb-0 small text-wrap">{{ session('command_output') }}</pre>
+                </div>
+            </div>
+        @endif
 
         {{-- Filter --}}
         <div class="card mb-4">

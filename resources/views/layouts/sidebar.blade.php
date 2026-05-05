@@ -117,6 +117,14 @@
                     <div>Blokir Slot</div>
                 </a>
             </li>
+
+            {{-- Setting Gaji --}}
+            <li class="menu-item {{ request()->routeIs('admin.setting-gaji.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.setting-gaji.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cog"></i>
+                    <div>Setting Gaji</div>
+                </a>
+            </li>
         @endif
 
         {{-- Menu Pegawai Only --}}

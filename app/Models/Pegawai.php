@@ -10,12 +10,15 @@ class Pegawai extends Model
 {
     use HasFactory;
 
+    public const JABATAN_PEGAWAI_BIASA = 'pegawai_biasa';
+
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'user_id',
         'layanan_id',
         'kontak',
+        'jabatan',
     ];
 
     protected $casts = [
@@ -61,5 +64,15 @@ class Pegawai extends Model
     public function getLayananIdsAttribute()
     {
         return $this->layanan_id ?? [];
+    }
+
+    public function getJabatanAttribute($value): string
+    {
+        return $value ?: self::JABATAN_PEGAWAI_BIASA;
+    }
+
+    public function getGajiPokokByJabatan(): int
+    {
+        return SettingGaji::getGajiPokokForJabatan($this->jabatan);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Gaji;
 use App\Models\Pegawai;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 
 class GajiController extends Controller
 {
@@ -87,5 +88,23 @@ class GajiController extends Controller
         ]);
 
         return redirect()->route('admin.gaji.index')->with('success', 'Status gaji berhasil diperbarui!');
+    }
+
+    public function generate()
+    {
+        $exitCode = Artisan::call('gaji:generate');
+        $output   = trim(Artisan::output());
+
+        if ($exitCode !== 0) {
+            return redirect()
+                ->route('admin.gaji.index')
+                ->with('error', 'Generate gaji bulanan gagal dijalankan.')
+                ->with('command_output', $output);
+        }
+
+        return redirect()
+            ->route('admin.gaji.index')
+            ->with('success', 'Generate gaji bulanan berhasil dijalankan.')
+            ->with('command_output', $output);
     }
 }
