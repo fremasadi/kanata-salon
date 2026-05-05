@@ -371,7 +371,9 @@ it('reservasi tanpa pj hanya memblok jam mulai yang sama', function () {
     $slots = (new AvailabilityService())->getAvailableSlots('2026-05-07', [$layanan->id]);
     $slot1430 = collect($slots['all_slots'])->firstWhere('time', '14:30');
     $slot1530 = collect($slots['all_slots'])->firstWhere('time', '15:30');
+    $slot1600 = collect($slots['all_slots'])->firstWhere('time', '16:00');
 
     expect($slot1430['status'] ?? null)->toBe('available');
     expect($slot1530['status'] ?? null)->toBe('full');
+    expect($slot1600['status'] ?? null)->toBe('full');
 });

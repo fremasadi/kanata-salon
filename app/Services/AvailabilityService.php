@@ -77,9 +77,9 @@ class AvailabilityService
 
         ksort($allPossibleSlots);
 
-        // Reservasi tanpa pegawai_pj_id tetap menahan 1 kapasitas,
-        // tetapi hanya pada jam mulai reservasinya sendiri.
-        // Ini menjaga slot start time tetap sinkron tanpa memblok slot sebelumnya.
+        // Reservasi tanpa pegawai_pj_id tetap menahan 1 kapasitas
+        // mulai dari jam reservasinya sendiri sampai estimasi selesai.
+        // Namun efeknya tidak retroaktif ke slot yang dimulai sebelum jam reservasi itu.
         $reservasiTanpaPJ = $reservasiAktif->whereNull('pegawai_pj_id');
 
         $allSlotsFormatted = [];
@@ -94,9 +94,10 @@ class AvailabilityService
 
             $freeEmployees = count($bySlot[$time] ?? []);
 
-            // Kurangi kapasitas untuk setiap reservasi tanpa PJ yang memiliki jam mulai sama.
+            // Kurangi kapasitas untuk setiap reservasi tanpa PJ yang
+            // dimulai pada atau setelah slot ini berjalan ke depan.
             foreach ($reservasiTanpaPJ as $res) {
-                if (substr($res->jam, 0, 5) === $time) {
+                if ($this->hasForwardConflictFromReservationStart($time, $totalDurasi, $res)) {
                     $freeEmployees--;
                 }
             }
@@ -253,6 +254,22 @@ class AvailabilityService
         }
 
         return false;
+    }
+
+    private function hasForwardConflictFromReservationStart(string $slotTime, int $durasiMenit, Reservasi $reservasi): bool
+    {
+        $base = Carbon::today()->toDateString();
+        $slotStart = Carbon::parse($base . ' ' . $slotTime);
+        $slotEnd = $slotStart->copy()->addMinutes($durasiMenit);
+
+        $existingStart = Carbon::parse($base . ' ' . substr($reservasi->jam, 0, 5));
+        $existingEnd = $existingStart->copy()->addMinutes($this->getReservasiDurasi($reservasi));
+
+        if ($slotStart->lt($existingStart)) {
+            return false;
+        }
+
+        return $slotStart->lt($existingEnd) && $existingStart->lt($slotEnd);
     }
 
     private function getReservasiDurasi(Reservasi $reservasi): int
