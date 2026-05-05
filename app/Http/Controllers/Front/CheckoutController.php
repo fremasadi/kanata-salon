@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Reservasi;
 use App\Models\Pegawai;
 use App\Services\AvailabilityService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,11 +51,12 @@ class CheckoutController extends Controller
         
         $total = Cart::total();
         $dpAvailable = $total > self::MIN_TOTAL_FOR_DP;
+        $todayWib = Carbon::now('Asia/Jakarta')->toDateString();
         
         // Validasi custom untuk jenis pembayaran
         $rules = [
-            'tanggal'        => 'required|date|after_or_equal:today',
-            'jam'            => 'required',
+            'tanggal'        => 'required|date|after_or_equal:' . $todayWib,
+            'jam'            => 'required|date_format:H:i',
             'catatan'        => 'nullable|string|max:500',
         ];
 
@@ -76,13 +78,18 @@ class CheckoutController extends Controller
             $jenisPembayaran = 'DP';
         }
         
-        // ✅ Ambil ID layanan dengan quantity (duplikasi sesuai quantity)
-        $layananIds = [];
-        foreach ($cartItems as $item) {
-            // Tambahkan ID sebanyak quantity
-            for ($i = 0; $i < $item['quantity']; $i++) {
-                $layananIds[] = $item['id'];
-            }
+        $layananIds = $this->extractLayananIdsFromCart($cartItems);
+
+        $availableSlots = (new AvailabilityService())->getAvailableSlots($request->tanggal, $layananIds);
+        $availableSlots = $this->filterPastSlotsForWib($availableSlots, $request->tanggal);
+        $selectedSlot = collect($availableSlots['all_slots'] ?? [])->firstWhere('time', $request->jam);
+
+        if (!$selectedSlot || ($selectedSlot['status'] ?? null) !== 'available') {
+            return back()
+                ->withErrors([
+                    'jam' => 'Jam reservasi ini sudah lewat atau tidak tersedia menurut waktu WIB. Silakan pilih slot lain.',
+                ])
+                ->withInput();
         }
         
         // Hitung jumlah pembayaran
@@ -137,16 +144,46 @@ class CheckoutController extends Controller
             return response()->json(['slots' => [], 'by_slot' => [], 'total_durasi' => 0]);
         }
 
-        // Kumpulkan semua layanan_id dari cart (dengan duplikat sesuai quantity)
+        $layananIds = $this->extractLayananIdsFromCart($cartItems);
+
+        $result = (new AvailabilityService())->getAvailableSlots($request->tanggal, $layananIds);
+        $result = $this->filterPastSlotsForWib($result, $request->tanggal);
+
+        return response()->json($result);
+    }
+
+    private function extractLayananIdsFromCart(array $cartItems): array
+    {
         $layananIds = [];
+
         foreach ($cartItems as $item) {
             for ($i = 0; $i < $item['quantity']; $i++) {
                 $layananIds[] = $item['id'];
             }
         }
 
-        $result = (new AvailabilityService())->getAvailableSlots($request->tanggal, $layananIds);
+        return $layananIds;
+    }
 
-        return response()->json($result);
+    private function filterPastSlotsForWib(array $result, string $tanggal): array
+    {
+        $nowWib = Carbon::now('Asia/Jakarta');
+
+        if ($tanggal !== $nowWib->toDateString()) {
+            return $result;
+        }
+
+        $currentTime = $nowWib->format('H:i');
+
+        $result['all_slots'] = array_values(array_filter(
+            $result['all_slots'] ?? [],
+            fn ($slot) => ($slot['time'] ?? '') >= $currentTime
+        ));
+
+        $result['by_slot'] = collect($result['by_slot'] ?? [])
+            ->filter(fn ($value, $time) => $time >= $currentTime)
+            ->all();
+
+        return $result;
     }
 }
