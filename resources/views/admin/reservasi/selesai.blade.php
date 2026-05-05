@@ -117,10 +117,10 @@
                                     @php
                                         $methods = [
                                             'tunai'        => ['label' => 'Tunai',         'icon' => 'bx-money'],
-                                            'bank_transfer'=> ['label' => 'Transfer Bank', 'icon' => 'bx-building-house'],
+                                            // 'bank_transfer'=> ['label' => 'Transfer Bank', 'icon' => 'bx-building-house'],
                                             'qris'         => ['label' => 'QRIS',          'icon' => 'bx-qr'],
-                                            'gopay'        => ['label' => 'GoPay',         'icon' => 'bx-wallet'],
-                                            'shopeepay'    => ['label' => 'ShopeePay',     'icon' => 'bx-wallet-alt'],
+                                            // 'gopay'        => ['label' => 'GoPay',         'icon' => 'bx-wallet'],
+                                            // 'shopeepay'    => ['label' => 'ShopeePay',     'icon' => 'bx-wallet-alt'],
                                         ];
                                     @endphp
                                     @foreach($methods as $value => $method)
@@ -156,7 +156,6 @@
                 </div>
 
                 <div class="text-end">
-                    <a href="{{ route('admin.reservasi.show', $reservasi->id) }}" class="btn btn-outline-secondary me-2">Batal</a>
                     <button type="submit" class="btn btn-success px-4">
                         <i class="bx bx-check-circle"></i> Konfirmasi & Selesaikan
                     </button>
