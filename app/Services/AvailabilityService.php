@@ -33,10 +33,10 @@ class AvailabilityService
             return ['all_slots' => [], 'by_slot' => [], 'total_durasi' => $totalDurasi];
         }
 
-        // Ambil reservasi yang masih mengonsumsi slot — Selesai tetap dihitung
-        // karena slotnya sudah terpakai. Hanya Batal yang benar-benar membebaskan slot.
+        // Ambil reservasi yang masih aktif mengonsumsi slot.
+        // Reservasi Selesai dan Batal tidak lagi menutup slot baru.
         $query = Reservasi::where('tanggal', $tanggal)
-            ->where('status', '!=', 'Batal');
+            ->whereNotIn('status', ['Batal', 'Selesai']);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -58,16 +58,11 @@ class AvailabilityService
                 $allPossibleSlots[$slotTime] = true;
             }
 
-            // Pegawai dianggap "tidak bebas" (tidak bisa jadi PJ baru) jika:
-            // - sudah jadi PJ di reservasi lain pada rentang waktu itu, ATAU
-            // - sudah jadi helper di reservasi lain pada rentang waktu itu
-            $reservasiBlocking = $reservasiAktif
-                ->where('pegawai_pj_id', $pegawai->id)
-                ->merge(
-                    $reservasiAktif->filter(
-                        fn($r) => in_array($pegawai->id, $r->pegawai_helper_id ?? [])
-                    )
-                );
+            // Slot checkout menghitung kapasitas calon PJ.
+            // Jadi pegawai hanya dianggap "tidak bebas" jika sudah menjadi PJ
+            // di reservasi lain pada rentang waktu yang sama.
+            // Jika sedang menjadi helper, dia tetap boleh dihitung tersedia sebagai PJ.
+            $reservasiBlocking = $reservasiAktif->where('pegawai_pj_id', $pegawai->id);
 
             foreach ($slots as $slotTime) {
                 if ($this->hasBlockedSlot($slotTime, $totalDurasi, $slotBlocks)) continue;

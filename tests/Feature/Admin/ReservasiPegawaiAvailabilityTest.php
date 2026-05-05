@@ -6,6 +6,7 @@ use App\Models\Pegawai;
 use App\Models\Reservasi;
 use App\Models\Shift;
 use App\Models\User;
+use App\Services\AvailabilityService;
 
 function createPegawaiDenganShift(string $hari = 'senin'): Pegawai
 {
@@ -285,4 +286,41 @@ it('mengizinkan pegawai yang sedang menjadi pj untuk dipilih sebagai helper', fu
         ->assertSessionHasNoErrors();
 
     expect($target->fresh()->pegawai_helper_id)->toBe([$pegawaiA->id]);
+});
+
+it('tetap membuka slot jika pegawai yang overlap hanya sedang menjadi helper', function () {
+    $pegawaiA = createPegawaiDenganShift();
+    $pegawaiB = createPegawaiDenganShift();
+
+    $layanan = JenisLayanan::create([
+        'name' => 'Hair Spa',
+        'harga' => 150000,
+        'harga_max' => 150000,
+        'jenis' => 'Treatment',
+        'durasi_menit' => 60,
+        'deskripsi' => 'Perawatan rambut',
+        'kategori' => 'Tunggal',
+        'image' => [],
+    ]);
+
+    Reservasi::create([
+        'name_pelanggan' => 'Pelanggan Aktif',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-11',
+        'jam' => '15:30:00',
+        'jenis' => 'Walk-in',
+        'status' => 'Berjalan',
+        'status_pembayaran' => 'Lunas',
+        'jumlah_pembayaran' => 150000,
+        'total_harga' => 150000,
+        'pegawai_pj_id' => $pegawaiA->id,
+        'pegawai_helper_id' => [$pegawaiB->id],
+    ]);
+
+    $slots = (new AvailabilityService())->getAvailableSlots('2026-05-11', [$layanan->id]);
+    $slot1430 = collect($slots['all_slots'])->firstWhere('time', '14:30');
+    $slot1530 = collect($slots['all_slots'])->firstWhere('time', '15:30');
+
+    expect($slot1430['status'] ?? null)->toBe('available');
+    expect($slot1530['status'] ?? null)->toBe('available');
 });
