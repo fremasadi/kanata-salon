@@ -74,6 +74,10 @@
                             <select name="pegawai_pj_id" id="pegawai_pj_id" class="form-select select2" required>
                                 <option value="">-- Cek ketersediaan terlebih dahulu --</option>
                             </select>
+                            <small class="text-muted d-block mt-2">
+                                Pegawai yang sedang menjadi PJ atau helper di reservasi lain pada jam yang sama tidak akan tampil sebagai kandidat PJ.
+                                Setelah reservasi sebelumnya berstatus <strong>Selesai</strong>, pegawai akan tersedia lagi.
+                            </small>
                         </div>
 
                         {{-- Helper (tampil jika ada layanan Kelompok) --}}

@@ -5,32 +5,30 @@
             <div class="d-flex gap-2 flex-wrap">
                 {{-- Mulai Layanan: status Menunggu atau Dikonfirmasi --}}
                 @if(in_array($reservasi->status, ['Menunggu', 'Dikonfirmasi']))
-                    <a href="{{ route('admin.reservasi.mulai', $reservasi->id) }}"
-                       class="btn btn-sm btn-primary" style="background-color:#e30083;border:none;">
+                    <a href="{{ route('admin.reservasi.mulai', $reservasi->id) }}" class="btn btn-sm btn-primary"
+                        style="background-color:#e30083;border:none;">
                         <i class="bx bx-play-circle"></i> Mulai Layanan
                     </a>
                 @endif
 
                 {{-- Selesaikan Tagihan: Online + DP + Berjalan --}}
                 @if($reservasi->status === 'Berjalan' && $reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP')
-                    <a href="{{ route('admin.reservasi.pelunasan', $reservasi->id) }}"
-                       class="btn btn-sm btn-success">
+                    <a href="{{ route('admin.reservasi.pelunasan', $reservasi->id) }}" class="btn btn-sm btn-success">
                         <i class="bx bx-money"></i> Selesaikan Tagihan
                     </a>
                 @endif
 
                 {{-- Tandai Selesai: Berjalan (semua jenis kecuali Online+DP yang punya tombol pelunasan sendiri) --}}
                 @if($reservasi->status === 'Berjalan' && !($reservasi->jenis === 'Online' && $reservasi->status_pembayaran === 'DP'))
-                    <a href="{{ route('admin.reservasi.selesai-form', $reservasi->id) }}"
-                       class="btn btn-sm btn-success">
+                    <a href="{{ route('admin.reservasi.selesai-form', $reservasi->id) }}" class="btn btn-sm btn-success">
                         <i class="bx bx-check-circle"></i> Tandai Selesai
                     </a>
                 @endif
 
                 {{-- @if(!in_array($reservasi->status, ['Selesai', 'Batal']))
-                    <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bx bx-edit"></i> Edit
-                    </a>
+                <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bx bx-edit"></i> Edit
+                </a>
                 @endif --}}
 
                 <a href="{{ route('admin.reservasi.index') }}" class="btn btn-sm btn-secondary">
@@ -40,18 +38,18 @@
         </div>
 
         <div class="card-body">
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible">
-                        <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible">
-                        <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible">
+                    <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible">
+                    <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
             <div class="row g-4">
 
                 {{-- Info Reservasi --}}
@@ -66,7 +64,8 @@
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Tanggal</td>
-                                    <td>: {{ \Carbon\Carbon::parse($reservasi->tanggal)->translatedFormat('d F Y') }}</td>
+                                    <td>: {{ \Carbon\Carbon::parse($reservasi->tanggal)->translatedFormat('d F Y') }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Jam</td>
@@ -75,7 +74,8 @@
                                 <tr>
                                     <td class="text-muted">Jenis</td>
                                     <td>:
-                                        <span class="badge {{ $reservasi->jenis == 'Online' ? 'bg-info' : 'bg-secondary' }}">
+                                        <span
+                                            class="badge {{ $reservasi->jenis == 'Online' ? 'bg-info' : 'bg-secondary' }}">
                                             {{ $reservasi->jenis }}
                                         </span>
                                     </td>
@@ -103,7 +103,8 @@
                     <div class="card border h-100">
                         <div class="card-header fw-semibold bg-light d-flex justify-content-between align-items-center">
                             <span>Informasi Pembayaran</span>
-                            <span class="badge {{ $reservasi->status_pembayaran == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }} fs-6">
+                            <span
+                                class="badge {{ $reservasi->status_pembayaran == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }} fs-6">
                                 {{ $reservasi->status_pembayaran }}
                             </span>
                         </div>
@@ -118,12 +119,14 @@
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Sudah Dibayar</td>
-                                    <td>: <span class="text-success fw-semibold">Rp {{ $reservasi->jumlah_pembayaran_formatted }}</span></td>
+                                    <td>: <span class="text-success fw-semibold">Rp
+                                            {{ $reservasi->jumlah_pembayaran_formatted }}</span></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Sisa Tagihan</td>
                                     <td>:
-                                        <span class="{{ $sisa > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold' }}">
+                                        <span
+                                            class="{{ $sisa > 0 ? 'text-danger fw-semibold' : 'text-success fw-semibold' }}">
                                             Rp {{ number_format($sisa, 0, ',', '.') }}
                                         </span>
                                     </td>
@@ -141,7 +144,8 @@
                                 <table class="table table-borderless table-sm mb-3">
                                     <tr>
                                         <td class="text-muted ps-3" width="45%">Jumlah</td>
-                                        <td>: <strong>Rp {{ number_format($dpPembayaran->gross_amount, 0, ',', '.') }}</strong></td>
+                                        <td>: <strong>Rp
+                                                {{ number_format($dpPembayaran->gross_amount, 0, ',', '.') }}</strong></td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted ps-3">Metode</td>
@@ -151,18 +155,20 @@
                                         <td class="text-muted ps-3">Status</td>
                                         <td>:
                                             <span class="badge
-                                                @if($dpPembayaran->transaction_status == 'settlement') bg-success
-                                                @elseif($dpPembayaran->transaction_status == 'pending') bg-warning text-dark
-                                                @else bg-danger @endif">
+                                                    @if($dpPembayaran->transaction_status == 'settlement') bg-success
+                                                    @elseif($dpPembayaran->transaction_status == 'pending') bg-warning text-dark
+                                                    @else bg-danger @endif">
                                                 {{ ucfirst($dpPembayaran->transaction_status ?? '-') }}
                                             </span>
                                         </td>
                                     </tr>
                                     @if($dpPembayaran->settlement_time)
-                                    <tr>
-                                        <td class="text-muted ps-3">Waktu</td>
-                                        <td>: {{ \Carbon\Carbon::parse($dpPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }} WIB</td>
-                                    </tr>
+                                        <tr>
+                                            <td class="text-muted ps-3">Waktu</td>
+                                            <td>:
+                                                {{ \Carbon\Carbon::parse($dpPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }}
+                                                WIB</td>
+                                        </tr>
                                     @endif
                                 </table>
                             @else
@@ -181,7 +187,9 @@
                                 <table class="table table-borderless table-sm mb-0">
                                     <tr>
                                         <td class="text-muted ps-3" width="45%">Jumlah</td>
-                                        <td>: <strong class="text-success">Rp {{ number_format($pelunasanPembayaran->gross_amount, 0, ',', '.') }}</strong></td>
+                                        <td>: <strong class="text-success">Rp
+                                                {{ number_format($pelunasanPembayaran->gross_amount, 0, ',', '.') }}</strong>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted ps-3">Metode</td>
@@ -191,24 +199,26 @@
                                         <td class="text-muted ps-3">Status</td>
                                         <td>:
                                             <span class="badge
-                                                @if($pelunasanPembayaran->transaction_status == 'settlement') bg-success
-                                                @elseif($pelunasanPembayaran->transaction_status == 'pending') bg-warning text-dark
-                                                @else bg-danger @endif">
+                                                    @if($pelunasanPembayaran->transaction_status == 'settlement') bg-success
+                                                    @elseif($pelunasanPembayaran->transaction_status == 'pending') bg-warning text-dark
+                                                    @else bg-danger @endif">
                                                 {{ ucfirst($pelunasanPembayaran->transaction_status ?? '-') }}
                                             </span>
                                         </td>
                                     </tr>
                                     @if($pelunasanPembayaran->settlement_time)
-                                    <tr>
-                                        <td class="text-muted ps-3">Waktu</td>
-                                        <td>: {{ \Carbon\Carbon::parse($pelunasanPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }} WIB</td>
-                                    </tr>
+                                        <tr>
+                                            <td class="text-muted ps-3">Waktu</td>
+                                            <td>:
+                                                {{ \Carbon\Carbon::parse($pelunasanPembayaran->settlement_time)->translatedFormat('d F Y, H:i') }}
+                                                WIB</td>
+                                        </tr>
                                     @endif
                                     @if($pelunasanPembayaran->notes)
-                                    <tr>
-                                        <td class="text-muted ps-3">Catatan</td>
-                                        <td>: {{ $pelunasanPembayaran->notes }}</td>
-                                    </tr>
+                                        <tr>
+                                            <td class="text-muted ps-3">Catatan</td>
+                                            <td>: {{ $pelunasanPembayaran->notes }}</td>
+                                        </tr>
                                     @endif
                                 </table>
                             @endif
@@ -255,8 +265,8 @@
                         <div class="card-header fw-semibold bg-light d-flex justify-content-between align-items-center">
                             <span>Pegawai</span>
                             @if(!$reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
-                                <a href="{{ route('admin.reservasi.edit', $reservasi->id) }}"
-                                   class="btn btn-sm btn-warning text-dark">
+                                <a href="{{ route('admin.reservasi.mulai', $reservasi->id) }}"
+                                    class="btn btn-sm btn-warning text-dark">
                                     <i class="bx bx-user-plus"></i> Assign Pegawai
                                 </a>
                             @endif
@@ -269,7 +279,19 @@
                                     <i class="bx bx-error-circle fs-5"></i>
                                     <div>
                                         <strong>Belum ada pegawai PJ.</strong><br>
-                                        <small>Klik <em>Assign Pegawai</em> untuk menentukan pegawai yang tersedia di jam ini.</small>
+                                        <small>Klik <em>Assign Pegawai</em> untuk menentukan pegawai yang tersedia di jam
+                                            ini.</small><br>
+                                        <small>Pegawai yang sedang menjadi PJ atau helper di reservasi lain pada jam yang
+                                            sama tidak bisa dipilih sampai reservasi sebelumnya selesai.</small>
+                                    </div>
+                                </div>
+                            @elseif($reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
+                                <div class="alert alert-info py-2 d-flex align-items-center gap-2 mb-3">
+                                    <i class="bx bx-info-circle fs-5"></i>
+                                    <div>
+                                        <strong>Pegawai sudah ditetapkan untuk reservasi ini.</strong><br>
+                                        <small>Selama reservasi ini belum <em>Selesai</em>, PJ yang dipilih tidak bisa
+                                            menjadi PJ di reservasi lain pada jam yang sama.</small>
                                     </div>
                                 </div>
                             @endif

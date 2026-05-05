@@ -78,44 +78,25 @@ class ReservasiController extends Controller
         'total_harga' => 'required|numeric|min:0',
         'pegawai_pj_id' => 'nullable|exists:pegawais,id',
         'pegawai_helper_id' => 'nullable|array',
+        'pegawai_helper_id.*' => 'exists:pegawais,id',
         'status_pembayaran' => 'required|in:DP,Lunas',
         'jumlah_pembayaran' => 'nullable|numeric|min:0',
     ]);
 
 
-    $helperIds = array_map('intval', $data['pegawai_helper_id'] ?? []);
+    $helperIds = array_values(array_unique(array_map('intval', $data['pegawai_helper_id'] ?? [])));
     $pjId      = $data['pegawai_pj_id'] ? (int) $data['pegawai_pj_id'] : null;
 
     // Validasi PJ/helper hanya jika PJ dipilih
     if ($pjId) {
-        // PJ tidak boleh sekaligus helper
-        if (in_array($pjId, $helperIds)) {
-            return back()
-                ->withErrors(['pegawai_helper_id' => 'Pegawai yang dipilih sebagai PJ tidak bisa sekaligus menjadi helper.'])
-                ->withInput();
-        }
-
-        $available = (new AvailabilityService())->getAvailablePegawaiForSlot(
+        if ($response = $this->validatePegawaiAssignment(
             $data['tanggal'],
-            Carbon::parse($data['jam'])->format('H:i'),
-            $data['layanan_id']
-        );
-
-        $validPjIds     = array_map('intval', array_column($available['pj'],     'id'));
-        $validHelperIds = array_map('intval', array_column($available['helper'], 'id'));
-
-        if (!in_array($pjId, $validPjIds)) {
-            return back()
-                ->withErrors(['pegawai_pj_id' => 'Pegawai ini tidak bisa menjadi PJ — sedang menjadi PJ atau helper di reservasi lain pada jam yang sama.'])
-                ->withInput();
-        }
-
-        foreach ($helperIds as $helperId) {
-            if (!in_array($helperId, $validHelperIds)) {
-                return back()
-                    ->withErrors(['pegawai_helper_id' => 'Salah satu helper tidak tersedia — sedang menjadi PJ di reservasi lain pada jam yang sama.'])
-                    ->withInput();
-            }
+            $data['jam'],
+            $data['layanan_id'],
+            $pjId,
+            $helperIds
+        )) {
+            return $response;
         }
     }
 
@@ -166,8 +147,22 @@ class ReservasiController extends Controller
             'total_harga' => 'required|numeric|min:0',
             'pegawai_pj_id' => 'required|exists:pegawais,id',
             'pegawai_helper_id' => 'nullable|array',
+            'pegawai_helper_id.*' => 'exists:pegawais,id',
         ]);
 
+        $helperIds = array_values(array_unique(array_map('intval', $data['pegawai_helper_id'] ?? [])));
+        $pjId      = (int) $data['pegawai_pj_id'];
+
+        if ($response = $this->validatePegawaiAssignment(
+            $data['tanggal'],
+            $data['jam'],
+            $data['layanan_id'],
+            $pjId,
+            $helperIds,
+            $reservasi->id
+        )) {
+            return $response;
+        }
 
         // Update otomatis jumlah pembayaran jika status lunas
         if ($data['status_pembayaran'] === 'Lunas') {
@@ -175,6 +170,9 @@ class ReservasiController extends Controller
         } elseif (empty($data['jumlah_pembayaran'])) {
             $data['jumlah_pembayaran'] = $reservasi->jumlah_pembayaran ?? ($data['total_harga'] / 2);
         }
+
+        $data['pegawai_pj_id']     = $pjId;
+        $data['pegawai_helper_id'] = $helperIds;
 
         $reservasi->update($data);
 
@@ -276,43 +274,22 @@ class ReservasiController extends Controller
             'pegawai_helper_id.*' => 'exists:pegawais,id',
         ]);
 
-        $helperIds = array_map('intval', $request->pegawai_helper_id ?? []);
+        $helperIds = array_values(array_unique(array_map('intval', $request->pegawai_helper_id ?? [])));
+        $pjId      = (int) $request->pegawai_pj_id;
 
-        // PJ tidak boleh sekaligus jadi helper
-        if (in_array((int) $request->pegawai_pj_id, $helperIds)) {
-            return back()
-                ->withErrors(['pegawai_helper_id' => 'Pegawai yang dipilih sebagai PJ tidak bisa sekaligus menjadi helper.'])
-                ->withInput();
-        }
-
-        $available = (new AvailabilityService())->getAvailablePegawaiForSlot(
+        if ($response = $this->validatePegawaiAssignment(
             $reservasi->tanggal->format('Y-m-d'),
             Carbon::parse($reservasi->jam)->format('H:i'),
             $reservasi->layanan_id,
+            $pjId,
+            $helperIds,
             $reservasi->id
-        );
-
-        $validPjIds     = array_map('intval', array_column($available['pj'],     'id'));
-        $validHelperIds = array_map('intval', array_column($available['helper'], 'id'));
-
-        // Validasi PJ: harus benar-benar bebas (bukan PJ dan bukan helper di tempat lain)
-        if (!in_array((int) $request->pegawai_pj_id, $validPjIds)) {
-            return back()
-                ->withErrors(['pegawai_pj_id' => 'Pegawai ini tidak bisa menjadi PJ — kemungkinan sedang menjadi PJ atau helper di reservasi lain pada jam yang sama.'])
-                ->withInput();
-        }
-
-        // Validasi helper: tidak boleh yang sedang jadi PJ di tempat lain
-        foreach ($helperIds as $helperId) {
-            if (!in_array($helperId, $validHelperIds)) {
-                return back()
-                    ->withErrors(['pegawai_helper_id' => 'Salah satu helper tidak tersedia — kemungkinan sedang menjadi PJ di reservasi lain pada jam yang sama.'])
-                    ->withInput();
-            }
+        )) {
+            return $response;
         }
 
         $reservasi->update([
-            'pegawai_pj_id'     => $request->pegawai_pj_id,
+            'pegawai_pj_id'     => $pjId,
             'pegawai_helper_id' => $helperIds,
             'status'            => 'Berjalan',
         ]);
@@ -476,6 +453,47 @@ class ReservasiController extends Controller
         );
 
         return response()->json($pegawais);
+    }
+
+    private function validatePegawaiAssignment(
+        string $tanggal,
+        string $jam,
+        array $layananIds,
+        int $pjId,
+        array $helperIds = [],
+        ?int $excludeId = null
+    ) {
+        if (in_array($pjId, $helperIds, true)) {
+            return back()
+                ->withErrors(['pegawai_helper_id' => 'Pegawai yang dipilih sebagai PJ tidak bisa sekaligus menjadi helper.'])
+                ->withInput();
+        }
+
+        $available = (new AvailabilityService())->getAvailablePegawaiForSlot(
+            Carbon::parse($tanggal)->format('Y-m-d'),
+            Carbon::parse($jam)->format('H:i'),
+            $layananIds,
+            $excludeId
+        );
+
+        $validPjIds     = array_map('intval', array_column($available['pj'], 'id'));
+        $validHelperIds = array_map('intval', array_column($available['helper'], 'id'));
+
+        if (!in_array($pjId, $validPjIds, true)) {
+            return back()
+                ->withErrors(['pegawai_pj_id' => 'Pegawai ini tidak bisa menjadi PJ karena sudah menjadi PJ atau helper di reservasi lain pada jam yang sama. Pegawai baru bisa dipakai lagi setelah reservasi sebelumnya selesai.'])
+                ->withInput();
+        }
+
+        foreach ($helperIds as $helperId) {
+            if (!in_array($helperId, $validHelperIds, true)) {
+                return back()
+                    ->withErrors(['pegawai_helper_id' => 'Salah satu helper tidak tersedia karena sedang menjadi PJ di reservasi lain pada jam yang sama.'])
+                    ->withInput();
+            }
+        }
+
+        return null;
     }
 
     private function generateKomisi(Reservasi $reservasi, float $totalHarga): void
