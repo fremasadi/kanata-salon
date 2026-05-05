@@ -35,7 +35,7 @@ function createPegawaiDenganShift(string $hari = 'senin'): Pegawai
     return $pegawai;
 }
 
-function payloadUpdateReservasi(Reservasi $reservasi, int $pegawaiPjId): array
+function payloadUpdateReservasi(Reservasi $reservasi, int $pegawaiPjId, array $helperIds = []): array
 {
     return [
         'name_pelanggan' => $reservasi->name_pelanggan,
@@ -48,7 +48,7 @@ function payloadUpdateReservasi(Reservasi $reservasi, int $pegawaiPjId): array
         'jumlah_pembayaran' => (float) $reservasi->jumlah_pembayaran,
         'total_harga' => (float) $reservasi->total_harga,
         'pegawai_pj_id' => $pegawaiPjId,
-        'pegawai_helper_id' => [],
+        'pegawai_helper_id' => $helperIds,
     ];
 }
 
@@ -167,4 +167,122 @@ it('mengizinkan pegawai menjadi pj lagi setelah reservasi sebelumnya selesai', f
         ->assertSessionHasNoErrors();
 
     expect($target->fresh()->pegawai_pj_id)->toBe($pegawaiA->id);
+});
+
+it('mengizinkan pegawai yang sedang menjadi helper untuk dipilih sebagai pj', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $pegawaiA = createPegawaiDenganShift();
+    $pegawaiB = createPegawaiDenganShift();
+    $pegawaiC = createPegawaiDenganShift();
+
+    $layanan = JenisLayanan::create([
+        'name' => 'Hair Spa',
+        'harga' => 150000,
+        'harga_max' => 150000,
+        'jenis' => 'Treatment',
+        'durasi_menit' => 60,
+        'deskripsi' => 'Perawatan rambut',
+        'kategori' => 'Tunggal',
+        'image' => [],
+    ]);
+
+    Reservasi::create([
+        'name_pelanggan' => 'Pelanggan Aktif',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-11',
+        'jam' => '10:00:00',
+        'jenis' => 'Walk-in',
+        'status' => 'Berjalan',
+        'status_pembayaran' => 'Lunas',
+        'jumlah_pembayaran' => 150000,
+        'total_harga' => 150000,
+        'pegawai_pj_id' => $pegawaiB->id,
+        'pegawai_helper_id' => [$pegawaiA->id],
+    ]);
+
+    $target = Reservasi::create([
+        'name_pelanggan' => 'Pelanggan Target',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-11',
+        'jam' => '10:00:00',
+        'jenis' => 'Walk-in',
+        'status' => 'Menunggu',
+        'status_pembayaran' => 'Lunas',
+        'jumlah_pembayaran' => 150000,
+        'total_harga' => 150000,
+        'pegawai_pj_id' => $pegawaiC->id,
+        'pegawai_helper_id' => [],
+    ]);
+
+    $response = $this
+        ->actingAs($admin)
+        ->put(route('admin.reservasi.update', $target->id), payloadUpdateReservasi($target, $pegawaiA->id));
+
+    $response
+        ->assertRedirect(route('admin.reservasi.index'))
+        ->assertSessionHasNoErrors();
+
+    expect($target->fresh()->pegawai_pj_id)->toBe($pegawaiA->id);
+});
+
+it('mengizinkan pegawai yang sedang menjadi pj untuk dipilih sebagai helper', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $pegawaiA = createPegawaiDenganShift();
+    $pegawaiB = createPegawaiDenganShift();
+    $pegawaiC = createPegawaiDenganShift();
+
+    $layanan = JenisLayanan::create([
+        'name' => 'Hair Spa',
+        'harga' => 150000,
+        'harga_max' => 150000,
+        'jenis' => 'Treatment',
+        'durasi_menit' => 60,
+        'deskripsi' => 'Perawatan rambut',
+        'kategori' => 'Kelompok',
+        'image' => [],
+    ]);
+
+    Reservasi::create([
+        'name_pelanggan' => 'Pelanggan Aktif',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-11',
+        'jam' => '10:00:00',
+        'jenis' => 'Walk-in',
+        'status' => 'Berjalan',
+        'status_pembayaran' => 'Lunas',
+        'jumlah_pembayaran' => 150000,
+        'total_harga' => 150000,
+        'pegawai_pj_id' => $pegawaiA->id,
+        'pegawai_helper_id' => [],
+    ]);
+
+    $target = Reservasi::create([
+        'name_pelanggan' => 'Pelanggan Target',
+        'layanan_id' => [$layanan->id],
+        'tanggal' => '2026-05-11',
+        'jam' => '10:00:00',
+        'jenis' => 'Walk-in',
+        'status' => 'Menunggu',
+        'status_pembayaran' => 'Lunas',
+        'jumlah_pembayaran' => 150000,
+        'total_harga' => 150000,
+        'pegawai_pj_id' => $pegawaiB->id,
+        'pegawai_helper_id' => [],
+    ]);
+
+    $response = $this
+        ->actingAs($admin)
+        ->put(route('admin.reservasi.update', $target->id), payloadUpdateReservasi($target, $pegawaiB->id, [$pegawaiA->id]));
+
+    $response
+        ->assertRedirect(route('admin.reservasi.index'))
+        ->assertSessionHasNoErrors();
+
+    expect($target->fresh()->pegawai_helper_id)->toBe([$pegawaiA->id]);
 });

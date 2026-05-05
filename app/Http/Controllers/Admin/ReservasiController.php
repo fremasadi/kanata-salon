@@ -14,6 +14,9 @@ use Carbon\Carbon;
 
 class ReservasiController extends Controller
 {
+    public const DP_AMOUNT = 50000;
+    public const MIN_TOTAL_FOR_DP = 50000;
+
     public function index(Request $request)
     {
         $query = Reservasi::with(['pegawaiPJ.user']);
@@ -72,8 +75,9 @@ class ReservasiController extends Controller
     $data = $request->validate([
         'name_pelanggan' => 'required|string|max:255',
         'layanan_id' => 'required|array',
+        'layanan_id.*' => 'exists:jenis_layanans,id',
         'tanggal' => 'required|date',
-        'jam' => 'required',
+        'jam' => 'required|date_format:H:i',
         'jenis' => 'required|in:Online,Walk-in',
         'total_harga' => 'required|numeric|min:0',
         'pegawai_pj_id' => 'nullable|exists:pegawais,id',
@@ -86,6 +90,14 @@ class ReservasiController extends Controller
 
     $helperIds = array_values(array_unique(array_map('intval', $data['pegawai_helper_id'] ?? [])));
     $pjId      = $data['pegawai_pj_id'] ? (int) $data['pegawai_pj_id'] : null;
+
+    if ($response = $this->validateSlotAvailability(
+        $data['tanggal'],
+        $data['jam'],
+        $data['layanan_id']
+    )) {
+        return $response;
+    }
 
     // Validasi PJ/helper hanya jika PJ dipilih
     if ($pjId) {
@@ -103,13 +115,7 @@ class ReservasiController extends Controller
     $data['pegawai_helper_id'] = $helperIds;
     $data['pegawai_pj_id']     = $pjId;
     $data['status']            = 'Menunggu';
-
-    // Jika status Lunas, jumlah_pembayaran otomatis = total_harga
-    if ($data['status_pembayaran'] === 'Lunas') {
-        $data['jumlah_pembayaran'] = $data['total_harga'];
-    } elseif (empty($data['jumlah_pembayaran'])) {
-        $data['jumlah_pembayaran'] = $data['total_harga'] / 2;
-    }
+    $data                      = $this->normalizePembayaran($data);
 
     Reservasi::create($data);
 
@@ -138,8 +144,9 @@ class ReservasiController extends Controller
         $data = $request->validate([
             'name_pelanggan' => 'required|string|max:255',
             'layanan_id' => 'required|array',
+            'layanan_id.*' => 'exists:jenis_layanans,id',
             'tanggal' => 'required|date',
-            'jam' => 'required',
+            'jam' => 'required|date_format:H:i',
             'jenis' => 'required|in:Online,Walk-in',
             'status' => 'required|in:Menunggu,Dikonfirmasi,Berjalan,Selesai,Batal',
             'status_pembayaran' => 'required|in:DP,Lunas',
@@ -153,6 +160,15 @@ class ReservasiController extends Controller
         $helperIds = array_values(array_unique(array_map('intval', $data['pegawai_helper_id'] ?? [])));
         $pjId      = (int) $data['pegawai_pj_id'];
 
+        if ($response = $this->validateSlotAvailability(
+            $data['tanggal'],
+            $data['jam'],
+            $data['layanan_id'],
+            $reservasi->id
+        )) {
+            return $response;
+        }
+
         if ($response = $this->validatePegawaiAssignment(
             $data['tanggal'],
             $data['jam'],
@@ -164,15 +180,9 @@ class ReservasiController extends Controller
             return $response;
         }
 
-        // Update otomatis jumlah pembayaran jika status lunas
-        if ($data['status_pembayaran'] === 'Lunas') {
-            $data['jumlah_pembayaran'] = $data['total_harga'];
-        } elseif (empty($data['jumlah_pembayaran'])) {
-            $data['jumlah_pembayaran'] = $reservasi->jumlah_pembayaran ?? ($data['total_harga'] / 2);
-        }
-
         $data['pegawai_pj_id']     = $pjId;
         $data['pegawai_helper_id'] = $helperIds;
+        $data                      = $this->normalizePembayaran($data);
 
         $reservasi->update($data);
 
@@ -455,6 +465,23 @@ class ReservasiController extends Controller
         return response()->json($pegawais);
     }
 
+    public function availableSlots(Request $request)
+    {
+        $request->validate([
+            'tanggal'     => 'required|date',
+            'layanan_ids' => 'required|array',
+            'layanan_ids.*' => 'exists:jenis_layanans,id',
+        ]);
+
+        $slots = (new AvailabilityService())->getAvailableSlots(
+            $request->tanggal,
+            $request->layanan_ids,
+            $request->input('exclude_id')
+        );
+
+        return response()->json($slots);
+    }
+
     private function validatePegawaiAssignment(
         string $tanggal,
         string $jam,
@@ -481,19 +508,68 @@ class ReservasiController extends Controller
 
         if (!in_array($pjId, $validPjIds, true)) {
             return back()
-                ->withErrors(['pegawai_pj_id' => 'Pegawai ini tidak bisa menjadi PJ karena sudah menjadi PJ atau helper di reservasi lain pada jam yang sama. Pegawai baru bisa dipakai lagi setelah reservasi sebelumnya selesai.'])
+                ->withErrors(['pegawai_pj_id' => 'Pegawai ini tidak bisa menjadi PJ karena sudah menjadi PJ di reservasi lain pada jam yang sama. Sebagai helper tetap diperbolehkan.'])
                 ->withInput();
         }
 
         foreach ($helperIds as $helperId) {
             if (!in_array($helperId, $validHelperIds, true)) {
                 return back()
-                    ->withErrors(['pegawai_helper_id' => 'Salah satu helper tidak tersedia karena sedang menjadi PJ di reservasi lain pada jam yang sama.'])
+                    ->withErrors(['pegawai_helper_id' => 'Salah satu helper tidak tersedia karena sudah menjadi helper di reservasi lain pada jam yang sama. Sebagai PJ tetap diperbolehkan.'])
                     ->withInput();
             }
         }
 
         return null;
+    }
+
+    private function validateSlotAvailability(
+        string $tanggal,
+        string $jam,
+        array $layananIds,
+        ?int $excludeId = null
+    ) {
+        $availableSlots = (new AvailabilityService())->getAvailableSlots(
+            Carbon::parse($tanggal)->format('Y-m-d'),
+            $layananIds,
+            $excludeId
+        );
+
+        $slot = collect($availableSlots['all_slots'] ?? [])
+            ->firstWhere('time', Carbon::parse($jam)->format('H:i'));
+
+        if (!$slot || ($slot['status'] ?? null) !== 'available') {
+            return back()
+                ->withErrors([
+                    'jam' => 'Jam reservasi ini tidak tersedia. Pilih slot lain yang masih tersedia agar sinkron dengan booking online dan offline.',
+                ])
+                ->withInput();
+        }
+
+        return null;
+    }
+
+    private function normalizePembayaran(array $data): array
+    {
+        $total       = (float) $data['total_harga'];
+        $isWalkIn    = ($data['jenis'] ?? 'Walk-in') === 'Walk-in';
+        $dpAvailable = $total > self::MIN_TOTAL_FOR_DP;
+
+        if ($isWalkIn || !$dpAvailable) {
+            $data['status_pembayaran'] = 'Lunas';
+            $data['jumlah_pembayaran'] = $total;
+            return $data;
+        }
+
+        if (($data['status_pembayaran'] ?? 'DP') === 'DP') {
+            $data['jumlah_pembayaran'] = min(self::DP_AMOUNT, $total);
+            return $data;
+        }
+
+        $data['status_pembayaran'] = 'Lunas';
+        $data['jumlah_pembayaran'] = $total;
+
+        return $data;
     }
 
     private function generateKomisi(Reservasi $reservasi, float $totalHarga): void

@@ -281,8 +281,8 @@
                                         <strong>Belum ada pegawai PJ.</strong><br>
                                         <small>Klik <em>Assign Pegawai</em> untuk menentukan pegawai yang tersedia di jam
                                             ini.</small><br>
-                                        <small>Pegawai yang sedang menjadi PJ atau helper di reservasi lain pada jam yang
-                                            sama tidak bisa dipilih sampai reservasi sebelumnya selesai.</small>
+                                        <small>Pegawai yang sedang menjadi PJ di reservasi lain pada jam yang
+                                            sama tidak bisa dipilih sebagai PJ, tetapi masih bisa dipilih sebagai helper.</small>
                                     </div>
                                 </div>
                             @elseif($reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
@@ -291,7 +291,7 @@
                                     <div>
                                         <strong>Pegawai sudah ditetapkan untuk reservasi ini.</strong><br>
                                         <small>Selama reservasi ini belum <em>Selesai</em>, PJ yang dipilih tidak bisa
-                                            menjadi PJ di reservasi lain pada jam yang sama.</small>
+                                            menjadi PJ di reservasi lain pada jam yang sama, tetapi masih bisa menjadi helper.</small>
                                     </div>
                                 </div>
                             @endif
