@@ -83,6 +83,7 @@
                                         <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-gray-300"></span> Penuh</span>
                                         <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-red-300"></span> Tutup</span>
                                     </div>
+                                    <p class="text-xs text-gray-500 mt-2">Untuk tanggal hari ini, slot sebelum waktu sekarang di WIB otomatis disembunyikan.</p>
                                     <p id="slot-required-msg" class="text-red-500 text-sm mt-2 hidden">Pilih jam reservasi terlebih dahulu.</p>
                                 </div>
 

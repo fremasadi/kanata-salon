@@ -74,6 +74,10 @@
                             <select name="pegawai_pj_id" id="pegawai_pj_id" class="form-select select2" required>
                                 <option value="">-- Cek ketersediaan terlebih dahulu --</option>
                             </select>
+                            <small class="text-muted d-block mt-2">
+                                Pegawai yang sedang menjadi <strong>PJ</strong> di reservasi lain pada jam yang sama tidak bisa dipilih sebagai PJ.
+                                Jika sedang menjadi <strong>helper</strong>, pegawai tetap boleh dipilih sebagai PJ.
+                            </small>
                         </div>
 
                         {{-- Helper (tampil jika ada layanan Kelompok) --}}
@@ -82,7 +86,7 @@
                             <label class="form-label fw-semibold">Pegawai Helper</label>
                             <select name="pegawai_helper_id[]" id="pegawai_helper_id" class="form-select select2" multiple>
                             </select>
-                            <small class="text-muted">Opsional. Wajib jika ada layanan Kelompok.</small>
+                            <small class="text-muted">Opsional. Wajib jika ada layanan Kelompok. Pegawai yang sedang jadi PJ di reservasi lain tetap boleh dipilih sebagai helper.</small>
                         </div>
 
                     </div>
@@ -115,7 +119,7 @@
         const layananIds = {!! json_encode($reservasi->layanan_id) !!};
         const excludeId  = {{ $reservasi->id }};
 
-        // helperData: list kandidat helper dari server (sudah_helper flag menyala jika helper di tempat lain)
+        // helperData: list kandidat helper dari server (sudah_pj flag menyala jika sedang PJ di tempat lain)
         let helperData = [];
 
         function rebuildHelper() {
@@ -127,7 +131,7 @@
                 // Exclude pegawai yang sedang dipilih sebagai PJ
                 if (String(p.id) === String(selectedPJ)) return;
                 const helperSel  = currentHelpers.includes(String(p.id)) ? 'selected' : '';
-                const helperNote = p.sudah_helper ? ' ⚠ helper di reservasi lain' : '';
+                const helperNote = p.sudah_pj ? ' · juga PJ di reservasi lain' : '';
                 $('#pegawai_helper_id').append(
                     `<option value="${p.id}" ${helperSel}>${p.nama} — ${p.shift}${helperNote}</option>`
                 );
@@ -165,10 +169,11 @@
                         return;
                     }
 
-                    // Populate PJ — hanya dari pjData (benar-benar bebas)
+                    // Populate PJ — tidak sedang PJ di tempat lain
                     pjData.forEach(function (p) {
                         const pjSel = String(currentPJ) === String(p.id) ? 'selected' : '';
-                        $('#pegawai_pj_id').append(`<option value="${p.id}" ${pjSel}>${p.nama} — ${p.shift}</option>`);
+                        const pjNote = p.sudah_helper ? ' · juga helper di reservasi lain' : '';
+                        $('#pegawai_pj_id').append(`<option value="${p.id}" ${pjSel}>${p.nama} — ${p.shift}${pjNote}</option>`);
                     });
                     $('#pegawai_pj_id').trigger('change.select2');
 
@@ -176,18 +181,18 @@
                     helperData.forEach(function (p) {
                         if (String(p.id) === String(currentPJ)) return;
                         const helperSel  = currentHelpers.map(String).includes(String(p.id)) ? 'selected' : '';
-                        const helperNote = p.sudah_helper ? ' ⚠ helper di reservasi lain' : '';
+                        const helperNote = p.sudah_pj ? ' · juga PJ di reservasi lain' : '';
                         $('#pegawai_helper_id').append(
                             `<option value="${p.id}" ${helperSel}>${p.nama} — ${p.shift}${helperNote}</option>`
                         );
                     });
                     $('#pegawai_helper_id').trigger('change.select2');
 
-                    const infoHelper = helperData.length > pjData.length
-                        ? ` (${helperData.length - pjData.length} sedang helper di reservasi lain)`
+                    const infoHelper = pjData.filter(p => p.sudah_helper).length > 0
+                        ? ` (${pjData.filter(p => p.sudah_helper).length} kandidat PJ sedang helper di reservasi lain)`
                         : '';
                     $('#pj-info')
-                        .text(pjData.length + ' pegawai bebas sebagai PJ di jam ' + jamWIB + '.' + infoHelper)
+                        .text(pjData.length + ' pegawai tersedia sebagai PJ di jam ' + jamWIB + '.' + infoHelper)
                         .addClass('text-success').removeClass('text-muted text-danger');
                 },
                 error: function () {
