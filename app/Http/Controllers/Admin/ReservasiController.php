@@ -9,6 +9,7 @@ use App\Models\Pegawai;
 use App\Models\JenisLayanan;
 use App\Models\Shift;
 use App\Services\AvailabilityService;
+use App\Services\GajiSyncService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -481,7 +482,10 @@ class ReservasiController extends Controller
     private function generateKomisi(Reservasi $reservasi, float $totalHarga): void
     {
         // Hindari duplikat jika komisi sudah pernah dibuat
-        if (Komisi::where('reservasi_id', $reservasi->id)->exists()) return;
+        if (Komisi::where('reservasi_id', $reservasi->id)->exists()) {
+            app(GajiSyncService::class)->syncForReservasi($reservasi);
+            return;
+        }
 
         // PJ: 10%
         if ($reservasi->pegawai_pj_id) {
@@ -504,5 +508,7 @@ class ReservasiController extends Controller
                 'jumlah'       => round($totalHarga * 0.03),
             ]);
         }
+
+        app(GajiSyncService::class)->syncForReservasi($reservasi);
     }
 }

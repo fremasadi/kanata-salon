@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pegawai;
 use App\Models\SettingGaji;
+use App\Services\GajiSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,9 +34,13 @@ class SettingGajiController extends Controller
         ]);
 
         $settingGaji->update($validated);
+        SettingGaji::clearCache();
+
+        $updatedGajiCount = app(GajiSyncService::class)
+            ->syncActiveGajiForJabatan($settingGaji->jabatan, now());
 
         return redirect()
             ->route('admin.setting-gaji.index')
-            ->with('success', 'Setting gaji berhasil diperbarui.');
+            ->with('success', "Setting gaji berhasil diperbarui. {$updatedGajiCount} gaji aktif ikut disinkronkan.");
     }
 }

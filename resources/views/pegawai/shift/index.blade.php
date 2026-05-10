@@ -12,23 +12,23 @@
                         <table class="table table-bordered align-middle text-center">
                             <thead class="table-light">
                                 <tr>
-                                    @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $label)
+                                    @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $label)
                                         <th>{{ $label }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    @foreach(['senin','selasa','rabu','kamis','jumat','sabtu','minggu'] as $hari)
+                                    @foreach(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'] as $hari)
                                         @php $shift = $pegawai->shiftPadaHari($hari); @endphp
                                         <td>
                                             @if($shift)
                                                 <span class="badge bg-primary d-block mb-1">{{ $shift->nama }}</span>
                                                 <small class="text-muted">
-                                                    {{ substr($shift->waktu_mulai, 0, 5) }} – {{ substr($shift->waktu_selesai, 0, 5) }}
+                                                    {{ substr($shift->waktu_mulai, 0, 5) }} - {{ substr($shift->waktu_selesai, 0, 5) }}
                                                 </small>
                                             @else
-                                                <span class="text-muted">—</span>
+                                                <span class="badge bg-label-secondary">Libur</span>
                                             @endif
                                         </td>
                                     @endforeach

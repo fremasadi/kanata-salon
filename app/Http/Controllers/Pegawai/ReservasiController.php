@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Pegawai;
 
 use App\Http\Controllers\Controller;
-use App\Models\Reservasi;
 use App\Models\Komisi;
-use App\Models\Gaji;
-use App\Models\Pegawai;
+use App\Models\Reservasi;
+use App\Services\GajiSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class ReservasiController extends Controller
 {
@@ -95,9 +93,6 @@ class ReservasiController extends Controller
             ]
         );
 
-        // Update total komisi di gaji PJ
-        $this->updateGajiKomisi($reservasi->pegawai_pj_id, $jumlahKomisiPJ);
-
         // 2. Komisi untuk Helper (3% masing-masing)
         $helperIds = $reservasi->pegawai_helper_id ?? [];
         
@@ -116,54 +111,9 @@ class ReservasiController extends Controller
                         'jumlah' => $jumlahKomisiHelper,
                     ]
                 );
-
-                // Update total komisi di gaji helper
-                $this->updateGajiKomisi($helperId, $jumlahKomisiHelper);
             }
         }
-    }
 
-    /**
-     * Update atau buat record gaji dan tambahkan komisi
-     */
-    private function updateGajiKomisi($pegawaiId, $jumlahKomisi)
-    {
-        // Cek apakah pegawai ada
-        $pegawai = Pegawai::find($pegawaiId);
-        if (!$pegawai) {
-            return;
-        }
-
-        // Gunakan awal dan akhir bulan kalender
-        $sekarang = Carbon::now();
-        $periodeMulai = $sekarang->copy()->startOfMonth();
-        $periodeSelesai = $sekarang->copy()->endOfMonth();
-
-        // Cari gaji berdasarkan pegawai_id dan bulan/tahun
-        $gaji = Gaji::where('pegawai_id', $pegawaiId)
-            ->whereYear('periode_mulai', $sekarang->year)
-            ->whereMonth('periode_mulai', $sekarang->month)
-            ->first();
-
-        // Jika tidak ada, buat baru
-        if (!$gaji) {
-            $gaji = Gaji::create([
-                'pegawai_id' => $pegawaiId,
-                'periode_mulai' => $periodeMulai,
-                'periode_selesai' => $periodeSelesai,
-                'gaji_pokok' => $pegawai->getGajiPokokByJabatan(),
-                'total_komisi' => 0,
-                'total_gaji' => 0,
-                'status' => 'Draft',
-            ]);
-        }
-
-        $gaji->gaji_pokok = $pegawai->getGajiPokokByJabatan();
-
-        // Tambahkan komisi baru ke total komisi yang sudah ada
-        $gaji->total_komisi += $jumlahKomisi;
-        
-        // Hitung ulang total gaji
-        $gaji->hitungTotalGaji();
+        app(GajiSyncService::class)->syncForReservasi($reservasi);
     }
 }

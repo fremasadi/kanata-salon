@@ -16,9 +16,20 @@
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
                             <option value="">-- Semua --</option>
+                            @php
+                                $statusLabels = [
+                                    'pending' => 'Menunggu',
+                                    'settlement' => 'Berhasil',
+                                    // 'capture' => 'Berhasil Ditangkap',
+                                    // 'deny' => 'Ditolak',
+                                    'cancel' => 'Dibatalkan',
+                                    'expire' => 'Kedaluwarsa',
+                                    'failure' => 'Gagal',
+                                ];
+                            @endphp
                             @foreach(['pending','settlement','capture','deny','cancel','expire','failure'] as $st)
                                 <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>
-                                    {{ ucfirst($st) }}
+                                    {{ $statusLabels[$st] ?? ucfirst($st) }}
                                 </option>
                             @endforeach
                         </select>
@@ -35,7 +46,7 @@
                         <label class="form-label">Metode</label>
                         <select name="payment_type" class="form-select">
                             <option value="">-- Semua --</option>
-                            @foreach(['bank_transfer','gopay','qris','shopeepay','credit_card','echannel','other'] as $mt)
+                            @foreach(['bank_transfer','gopay','qris'] as $mt)
                                 <option value="{{ $mt }}" {{ request('payment_type') == $mt ? 'selected' : '' }}>
                                     {{ ucwords(str_replace('_',' ',$mt)) }}
                                 </option>

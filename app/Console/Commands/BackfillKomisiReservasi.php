@@ -3,13 +3,19 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Reservasi;
 use App\Models\Komisi;
+use App\Models\Reservasi;
+use App\Services\GajiSyncService;
 
 class BackfillKomisiReservasi extends Command
 {
     protected $signature = 'komisi:backfill {--dry-run : Tampilkan saja tanpa menyimpan}';
     protected $description = 'Backfill komisi untuk reservasi Selesai yang belum punya komisi (PJ 10%, Helper 3%)';
+
+    public function __construct(private GajiSyncService $gajiSyncService)
+    {
+        parent::__construct();
+    }
 
     public function handle()
     {
@@ -60,6 +66,10 @@ class BackfillKomisiReservasi extends Command
                     Komisi::create($row);
                 }
                 $count++;
+            }
+
+            if (!$dryRun) {
+                $this->gajiSyncService->syncForReservasi($res);
             }
         }
 

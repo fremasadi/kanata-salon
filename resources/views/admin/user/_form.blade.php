@@ -75,8 +75,8 @@
                 >
                     <option value="">-- Pilih Role --</option>
                     <option value="admin" {{ old('role', $user->role ?? '') === 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="pegawai" {{ old('role', $user->role ?? '') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
-                    <option value="pelanggan" {{ old('role', $user->role ?? '') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                    {{-- <option value="pegawai" {{ old('role', $user->role ?? '') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                    <option value="pelanggan" {{ old('role', $user->role ?? '') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option> --}}
                 </select>
                 @error('role')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -84,7 +84,7 @@
             </div>
 
             {{-- Status --}}
-            <div class="col-md-3">
+            {{-- <div class="col-md-3">
                 <label for="status" class="form-label">Status</label>
                 <select 
                     name="status" 
@@ -99,7 +99,7 @@
                 @error('status')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
-            </div>
+            </div> --}}
         </div>
 
         <div class="mt-4 text-end">

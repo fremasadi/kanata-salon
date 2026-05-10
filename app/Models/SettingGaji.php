@@ -10,6 +10,8 @@ class SettingGaji extends Model
 {
     use HasFactory;
 
+    protected static ?array $gajiPokokCache = null;
+
     protected $table = 'setting_gajis';
 
     protected $fillable = [
@@ -46,20 +48,18 @@ class SettingGaji extends Model
 
     public static function getGajiPokokForJabatan(string $jabatan): int
     {
-        static $cache = null;
-
         if (Schema::hasTable('setting_gajis')) {
-            if ($cache === null) {
+            if (self::$gajiPokokCache === null) {
                 self::ensureDefaultsExist();
 
-                $cache = self::query()
+                self::$gajiPokokCache = self::query()
                     ->pluck('gaji_pokok', 'jabatan')
                     ->map(fn ($value) => (int) $value)
                     ->all();
             }
 
-            if (array_key_exists($jabatan, $cache)) {
-                return $cache[$jabatan];
+            if (array_key_exists($jabatan, self::$gajiPokokCache)) {
+                return self::$gajiPokokCache[$jabatan];
             }
         }
 
@@ -67,5 +67,10 @@ class SettingGaji extends Model
             "gaji.jabatan.{$jabatan}.gaji_pokok",
             config('gaji.default_gaji_pokok', 0)
         );
+    }
+
+    public static function clearCache(): void
+    {
+        self::$gajiPokokCache = null;
     }
 }
