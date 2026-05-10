@@ -129,14 +129,14 @@
                                 <td>{{ $gaji->tanggal_dibayar ? \Carbon\Carbon::parse($gaji->tanggal_dibayar)->format('d M Y') : '-' }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editModal{{ $gaji->id }}">
+                                        data-bs-target="#editModal{{ $gaji->gaji_id }}">
                                         <i class="bx bx-edit"></i> Ubah
                                     </button>
                                 </td>
                             </tr>
 
                             {{-- Modal Edit --}}
-                            <div class="modal fade" id="editModal{{ $gaji->id }}" tabindex="-1">
+                            <div class="modal fade" id="editModal{{ $gaji->gaji_id }}" tabindex="-1">
                                 <div class="modal-dialog">
                                         <form action="{{ route('admin.gaji.update', $gaji) }}" method="POST">
                                         @csrf
