@@ -242,13 +242,16 @@ class AvailabilityService
     {
         $base      = Carbon::today()->toDateString();
         $slotStart = Carbon::parse($base . ' ' . $slotTime);
-        $slotEnd   = $slotStart->copy()->addMinutes($durasiMenit);
 
         foreach ($slotBlocks as $block) {
             $blockStart = Carbon::parse($base . ' ' . substr($block->jam_mulai, 0, 5));
             $blockEnd   = Carbon::parse($base . ' ' . substr($block->jam_selesai, 0, 5));
 
-            if ($slotStart->lt($blockEnd) && $blockStart->lt($slotEnd)) {
+            if ($blockEnd->lte($blockStart)) {
+                $blockEnd->addDay();
+            }
+
+            if ($slotStart->gte($blockStart) && $slotStart->lt($blockEnd)) {
                 return true;
             }
         }

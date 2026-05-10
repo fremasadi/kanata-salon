@@ -65,7 +65,7 @@
 
                         <div class="alert alert-warning py-2 small d-flex gap-2 align-items-start">
                             <i class="bx bx-info-circle mt-1"></i>
-                            <span>Semua slot dalam rentang waktu ini tidak akan muncul ke customer saat booking online.</span>
+                            <span>Hanya slot dengan jam mulai di dalam rentang waktu ini yang tidak akan muncul ke customer saat booking online.</span>
                         </div>
 
                         <button type="submit" class="btn btn-danger w-100">
