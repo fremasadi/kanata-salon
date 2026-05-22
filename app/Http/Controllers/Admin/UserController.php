@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,14 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        User::create($validated);
+        $user = User::create($validated);
+
+        if ($user->role === 'pegawai') {
+            Pegawai::firstOrCreate(
+                ['user_id' => $user->id],
+                ['layanan_id' => []]
+            );
+        }
 
         return redirect()->route('admin.user.index')->with('success', 'Pengguna berhasil ditambahkan.');
     }
@@ -53,6 +61,13 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        if ($user->role === 'pegawai') {
+            Pegawai::firstOrCreate(
+                ['user_id' => $user->id],
+                ['layanan_id' => []]
+            );
+        }
 
         return redirect()->route('admin.user.index')->with('success', 'Data pengguna berhasil diperbarui.');
     }

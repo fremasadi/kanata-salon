@@ -96,6 +96,22 @@
                 </a>
             </li>
 
+            {{-- Pengeluaran --}}
+            <li class="menu-item {{ request()->routeIs('admin.pengeluaran.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.pengeluaran.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-receipt"></i>
+                    <div>Pengeluaran</div>
+                </a>
+            </li>
+
+            {{-- Laporan Keuangan --}}
+            <li class="menu-item {{ request()->routeIs('admin.laporan-keuangan.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.laporan-keuangan.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-line-chart"></i>
+                    <div>Laporan Keuangan</div>
+                </a>
+            </li>
+
 
             {{-- Pengaturan --}}
             <li class="menu-header small text-uppercase">

@@ -73,7 +73,7 @@
                             <option value="">-- Semua --</option>
                             <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
                             <option value="Dibayar" {{ request('status') == 'Dibayar' ? 'selected' : '' }}>Dibayar</option>
-                            <option value="Ditunda" {{ request('status') == 'Ditunda' ? 'selected' : '' }}>Ditunda</option>
+                            {{-- <option value="Ditunda" {{ request('status') == 'Ditunda' ? 'selected' : '' }}>Ditunda</option> --}}
                         </select>
                     </div>
 
@@ -110,30 +110,157 @@
                     </thead>
                     <tbody>
                         @forelse($gajis as $gaji)
+                            @php
+                                $detailKomisis = $detailKomisiByGaji[$gaji->gaji_id] ?? collect();
+                                $totalDetailKomisi = $detailKomisis->sum('jumlah');
+                            @endphp
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $gaji->pegawai->user->name ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($gaji->periode_mulai)->format('d M Y') }} - 
+                                <td>{{ \Carbon\Carbon::parse($gaji->periode_mulai)->format('d M Y') }} -
                                     {{ \Carbon\Carbon::parse($gaji->periode_selesai)->format('d M Y') }}</td>
                                 <td>Rp {{ number_format($gaji->gaji_pokok, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($gaji->total_komisi, 0, ',', '.') }}</td>
                                 <td><strong>Rp {{ number_format($gaji->total_gaji, 0, ',', '.') }}</strong></td>
                                 <td>
-                                    <span class="badge 
-                                        @if($gaji->status == 'Draft') bg-secondary 
-                                        @elseif($gaji->status == 'Dibayar') bg-success 
+                                    <span class="badge
+                                        @if($gaji->status == 'Draft') bg-secondary
+                                        @elseif($gaji->status == 'Dibayar') bg-success
                                         @else bg-warning text-dark @endif">
                                         {{ $gaji->status }}
                                     </span>
                                 </td>
                                 <td>{{ $gaji->tanggal_dibayar ? \Carbon\Carbon::parse($gaji->tanggal_dibayar)->format('d M Y') : '-' }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editModal{{ $gaji->gaji_id }}">
-                                        <i class="bx bx-edit"></i> Ubah
-                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                            data-bs-target="#detailModal{{ $gaji->gaji_id }}">
+                                            <i class="bx bx-detail"></i> Detail
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                            data-bs-target="#editModal{{ $gaji->gaji_id }}">
+                                            <i class="bx bx-edit"></i> Ubah
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
+
+                            {{-- Modal Detail --}}
+                            <div class="modal fade" id="detailModal{{ $gaji->gaji_id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Detail Gaji - {{ $gaji->pegawai->user->name ?? '-' }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row g-3 mb-4">
+                                                <div class="col-md-6">
+                                                    <div class="border rounded p-3 h-100">
+                                                        <div class="text-muted small">Periode</div>
+                                                        <div class="fw-semibold">
+                                                            {{ \Carbon\Carbon::parse($gaji->periode_mulai)->format('d M Y') }}
+                                                            -
+                                                            {{ \Carbon\Carbon::parse($gaji->periode_selesai)->format('d M Y') }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="border rounded p-3 h-100">
+                                                        <div class="text-muted small">Status</div>
+                                                        <span class="badge
+                                                            @if($gaji->status == 'Draft') bg-secondary
+                                                            @elseif($gaji->status == 'Dibayar') bg-success
+                                                            @else bg-warning text-dark @endif">
+                                                            {{ $gaji->status }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="border rounded p-3 h-100">
+                                                        <div class="text-muted small">Gaji Pokok</div>
+                                                        <div class="fw-semibold">Rp {{ number_format($gaji->gaji_pokok, 0, ',', '.') }}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="border rounded p-3 h-100">
+                                                        <div class="text-muted small">Total Komisi</div>
+                                                        <div class="fw-semibold">Rp {{ number_format($gaji->total_komisi, 0, ',', '.') }}</div>
+                                                        @if((int) $totalDetailKomisi !== (int) $gaji->total_komisi)
+                                                            <small class="text-warning">Detail terhitung: Rp {{ number_format($totalDetailKomisi, 0, ',', '.') }}</small>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="border rounded p-3 h-100">
+                                                        <div class="text-muted small">Total Gaji</div>
+                                                        <div class="fw-bold text-primary">Rp {{ number_format($gaji->total_gaji, 0, ',', '.') }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h6 class="mb-3">
+                                                <i class="bx bx-money me-1"></i> Rincian Komisi
+                                            </h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-hover align-middle">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Reservasi</th>
+                                                            <th>Tanggal</th>
+                                                            <th>Peran</th>
+                                                            <th>Persentase</th>
+                                                            <th class="text-end">Jumlah</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @forelse($detailKomisis as $komisi)
+                                                            <tr>
+                                                                <td>{{ $loop->iteration }}</td>
+                                                                <td>
+                                                                    @if($komisi->reservasi)
+                                                                        <a href="{{ route('admin.reservasi.show', $komisi->reservasi_id) }}" class="text-decoration-none">
+                                                                            #{{ $komisi->reservasi_id }} - {{ $komisi->reservasi->name_pelanggan }}
+                                                                        </a>
+                                                                    @else
+                                                                        #{{ $komisi->reservasi_id }}
+                                                                    @endif
+                                                                </td>
+                                                                <td>
+                                                                    {{ $komisi->reservasi?->tanggal ? \Carbon\Carbon::parse($komisi->reservasi->tanggal)->format('d M Y') : '-' }}
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge {{ $komisi->peran == 'PJ' ? 'bg-primary' : 'bg-success' }}">
+                                                                        {{ $komisi->peran }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>{{ $komisi->persentase ? $komisi->persentase . '%' : '-' }}</td>
+                                                                <td class="text-end">Rp {{ number_format($komisi->jumlah, 0, ',', '.') }}</td>
+                                                            </tr>
+                                                        @empty
+                                                            <tr>
+                                                                <td colspan="6" class="text-center text-muted py-4">
+                                                                    <i class="bx bx-info-circle me-1"></i> Tidak ada komisi pada periode ini.
+                                                                </td>
+                                                            </tr>
+                                                        @endforelse
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <th colspan="5" class="text-end">Total Komisi Detail</th>
+                                                            <th class="text-end">Rp {{ number_format($totalDetailKomisi, 0, ',', '.') }}</th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {{-- Modal Edit --}}
                             <div class="modal fade" id="editModal{{ $gaji->gaji_id }}" tabindex="-1">

@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\JenisController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\Admin\PegawaiController;
 use App\Http\Controllers\Admin\GajiController;
+use App\Http\Controllers\Admin\LaporanKeuanganController;
+use App\Http\Controllers\Admin\PengeluaranController;
 use App\Http\Controllers\Admin\SettingGajiController;
 use App\Http\Controllers\Front\FrontController;
 use App\Http\Controllers\Front\CartController;
@@ -33,6 +35,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('gaji/export-csv', [GajiController::class, 'exportCsv'])->name('gaji.export-csv');
         Route::get('gaji/print', [GajiController::class, 'printView'])->name('gaji.print');
         Route::put('gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
+        Route::resource('pengeluaran', PengeluaranController::class)
+            ->except(['show'])
+            ->names('pengeluaran');
+        Route::get('laporan-keuangan', [LaporanKeuanganController::class, 'index'])->name('laporan-keuangan.index');
         Route::post('reservasi/available-pegawai', [\App\Http\Controllers\Admin\ReservasiController::class, 'availablePegawai'])->name('reservasi.available-pegawai');
         Route::post('reservasi/available-slots', [\App\Http\Controllers\Admin\ReservasiController::class, 'availableSlots'])->name('reservasi.available-slots');
         Route::get('reservasi/export-csv', [\App\Http\Controllers\Admin\ReservasiController::class, 'exportCsv'])->name('reservasi.export-csv');

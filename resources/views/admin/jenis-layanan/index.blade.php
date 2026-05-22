@@ -18,6 +18,37 @@
                 </div>
             @endif
 
+            <form action="{{ route('admin.jenis-layanan.index') }}" method="GET" class="mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bx bx-search"></i>
+                            </span>
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ request('search') }}"
+                                class="form-control"
+                                placeholder="Cari nama layanan, kategori, atau jenis..."
+                            >
+                        </div>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-search"></i> Cari
+                        </button>
+                    </div>
+                    @if(request('search'))
+                        <div class="col-md-auto">
+                            <a href="{{ route('admin.jenis-layanan.index') }}" class="btn btn-outline-secondary">
+                                <i class="bx bx-x"></i> Reset
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </form>
+
             <div class="table-responsive text-nowrap">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -35,7 +66,7 @@
                     <tbody>
                         @forelse($jenisLayanan as $index => $item)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $jenisLayanan->firstItem() + $index }}</td>
                                 <td>
                                     @php $firstImg = $item->first_image_url; @endphp
                                     @if($firstImg)
@@ -59,26 +90,33 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('admin.jenis-layanan.edit', $item->id) }}" 
-                                       class="btn btn-sm btn-warning">
-                                        <i class="bx bx-edit"></i> Edit
-                                    </a>
-                                    <!-- <form action="{{ route('admin.jenis-layanan.destroy', $item->id) }}" 
-                                          method="POST" class="d-inline"
-                                          onsubmit="return confirm('Yakin ingin menghapus layanan ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bx bx-trash"></i> Hapus
-                                        </button>
-                                    </form> -->
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ route('admin.jenis-layanan.edit', $item->id) }}" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('admin.jenis-layanan.destroy', $item->id) }}" 
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Yakin ingin menghapus layanan ini? Gambar dan data review terkait layanan ini juga bisa ikut terhapus.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bx bx-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="text-center text-muted">Belum ada data layanan.</td></tr>
+                            <tr><td colspan="8" class="text-center text-muted">Belum ada data layanan.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <div class="mt-3 d-flex justify-content-center">
+                {{ $jenisLayanan->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>

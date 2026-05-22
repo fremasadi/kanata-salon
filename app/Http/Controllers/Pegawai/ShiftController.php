@@ -10,10 +10,21 @@ class ShiftController extends Controller
 {
     public function index()
     {
-        $pegawai = Pegawai::with(['jadwalShifts.shift'])
+        $pegawai = Pegawai::with([
+                'jadwalShifts.shift',
+                'shiftHistories.shift',
+            ])
             ->where('user_id', Auth::id())
             ->first();
 
-        return view('pegawai.shift.index', compact('pegawai'));
+        $historiShifts = $pegawai
+            ? $pegawai->shiftHistories()
+                ->with('shift')
+                ->latest('tanggal')
+                ->latest()
+                ->paginate(10)
+            : collect();
+
+        return view('pegawai.shift.index', compact('pegawai', 'historiShifts'));
     }
 }

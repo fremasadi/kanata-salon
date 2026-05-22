@@ -4,9 +4,7 @@
             <h5 class="mb-0">
                 <i class="bx bx-id-card me-2"></i> Manajemen Pegawai
             </h5>
-            <a href="{{ route('admin.pegawai.create') }}" class="btn btn-primary">
-                <i class="bx bx-plus"></i> Tambah Pegawai
-            </a>
+
         </div>
 
         <div class="card-body">
@@ -57,21 +55,23 @@
                                 <td>{{ $pegawai->kontak ?? '-' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="{{ route('admin.pegawai.edit', $pegawai->id) }}" 
+                                        <a href="{{ route('admin.pegawai.edit', $pegawai->id) }}"
                                           class="btn btn-sm btn-warning">
                                         <i class="bx bx-edit"></i> Edit
                                         </a>
-                                        <!-- <form action="{{ route('admin.pegawai.destroy', $pegawai->id) }}" 
-                                              method="POST" 
-                                              onsubmit="return confirm('Yakin ingin menghapus pegawai ini?')"
+                                        <form action="{{ route('admin.pegawai.destroy', $pegawai->id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Yakin ingin force delete akun pegawai ini? Data pegawai, akun login, jadwal, histori shift, gaji, dan reservasi terkait bisa ikut terhapus permanen.')"
                                               class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-icon btn-danger" 
-                                                    data-bs-toggle="tooltip" title="Hapus">
-                                                <i class="bx bx-trash"></i>
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Force Delete Akun">
+                                                <i class="bx bx-trash"></i> Force Delete
                                             </button>
-                                        </form> -->
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

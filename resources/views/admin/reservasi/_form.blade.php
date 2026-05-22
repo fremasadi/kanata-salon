@@ -125,10 +125,11 @@
         <small id="pj-info" class="text-muted d-block mt-1"></small>
         <small class="text-muted d-block mt-1">
             Pegawai yang sedang jadi <strong>PJ</strong> di reservasi lain pada jam yang sama tidak bisa dipilih sebagai PJ.
-            Jika sedang jadi <strong>helper</strong>, pegawai tetap boleh dipilih sebagai PJ.
+            {{-- Jika sedang jadi <strong>helper</strong>, pegawai tetap boleh dipilih sebagai PJ. --}}
         </small>
     </div>
 
+    {{--
     <div class="col-md-6" id="helper_section">
         <label class="form-label">Pegawai Helper</label>
         <select name="pegawai_helper_id[]" id="pegawai_helper_id" class="form-select select2" multiple>
@@ -154,6 +155,7 @@
             Helper hanya bisa dipilih setelah slot dan PJ tersedia. Pegawai yang sedang jadi <strong>PJ</strong> di reservasi lain tetap boleh dipilih sebagai helper.
         </small>
     </div>
+    --}}
 
     <div class="col-md-6">
         <label class="form-label">Total Harga</label>
@@ -446,7 +448,8 @@ $(document).ready(function() {
 
                 pjData.forEach(function(p) {
                     const pjSelected = String(currentPJ) === String(p.id) ? 'selected' : '';
-                    const pjNote = p.sudah_helper ? ' · juga helper di reservasi lain' : '';
+                    // const pjNote = p.sudah_helper ? ' · juga helper di reservasi lain' : '';
+                    const pjNote = '';
                     $('#pegawai_pj_id').append(`<option value="${p.id}" ${pjSelected}>${p.nama} — ${p.shift}${pjNote}</option>`);
                 });
                 $('#pegawai_pj_id').trigger('change.select2');
@@ -461,9 +464,10 @@ $(document).ready(function() {
                 });
                 $('#pegawai_helper_id').trigger('change.select2');
 
-                const infoHelper = pjData.filter(p => p.sudah_helper).length > 0
-                    ? ` (${pjData.filter(p => p.sudah_helper).length} kandidat PJ sedang helper di reservasi lain)`
-                    : '';
+                // const infoHelper = pjData.filter(p => p.sudah_helper).length > 0
+                //     ? ` (${pjData.filter(p => p.sudah_helper).length} kandidat PJ sedang helper di reservasi lain)`
+                //     : '';
+                const infoHelper = '';
 
                 $('#pj-info')
                     .text(pjData.length + ' pegawai tersedia sebagai PJ di jam ' + jamWIB + '.' + infoHelper)

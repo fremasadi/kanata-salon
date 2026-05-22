@@ -74,9 +74,10 @@
                     required
                 >
                     <option value="">-- Pilih Role --</option>
-                    <option value="admin" {{ old('role', $user->role ?? '') === 'admin' ? 'selected' : '' }}>Admin</option>
-                    {{-- <option value="pegawai" {{ old('role', $user->role ?? '') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
-                    <option value="pelanggan" {{ old('role', $user->role ?? '') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option> --}}
+                    @php $selectedRole = old('role', $user->role ?? request('role', '')); @endphp
+                    <option value="admin" {{ $selectedRole === 'admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="pegawai" {{ $selectedRole === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                    {{-- <option value="pelanggan" {{ $selectedRole === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option> --}}
                 </select>
                 @error('role')
                     <div class="invalid-feedback">{{ $message }}</div>

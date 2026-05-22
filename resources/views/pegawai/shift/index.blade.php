@@ -8,18 +8,28 @@
         <div class="card shadow-sm">
             <div class="card-body">
                 @if($pegawai && $pegawai->jadwalShifts->isNotEmpty())
+                    @php
+                        $hariKeys = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+                        $hariLabels = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                        $awalMinggu = now()->startOfWeek(\Carbon\Carbon::MONDAY);
+                    @endphp
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle text-center">
                             <thead class="table-light">
                                 <tr>
-                                    @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $label)
-                                        <th>{{ $label }}</th>
+                                    @foreach($hariLabels as $index => $label)
+                                        <th>
+                                            {{ $label }}<br>
+                                            <small class="text-muted">
+                                                {{ $awalMinggu->copy()->addDays($index)->format('d/m/Y') }}
+                                            </small>
+                                        </th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    @foreach(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'] as $hari)
+                                    @foreach($hariKeys as $hari)
                                         @php $shift = $pegawai->shiftPadaHari($hari); @endphp
                                         <td>
                                             @if($shift)
@@ -39,6 +49,61 @@
                 @else
                     <div class="alert alert-warning text-center">
                         <i class="bx bx-info-circle"></i> Anda belum memiliki jadwal shift.
+                    </div>
+                @endif
+
+                @if($pegawai)
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">
+                        <i class="bx bx-history me-1"></i> Histori Shift
+                    </h6>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Hari</th>
+                                    <th>Shift</th>
+                                    <th>Jam</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($historiShifts as $histori)
+                                    <tr>
+                                        <td>{{ $histori->tanggal->format('d/m/Y') }}</td>
+                                        <td class="text-capitalize">{{ $histori->hari }}</td>
+                                        <td>
+                                            @if($histori->shift)
+                                                <span class="badge bg-primary">{{ $histori->shift->nama }}</span>
+                                            @else
+                                                <span class="badge bg-label-secondary">Libur</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($histori->shift)
+                                                {{ substr($histori->shift->waktu_mulai, 0, 5) }} - {{ substr($histori->shift->waktu_selesai, 0, 5) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>{{ $histori->keterangan ?? '-' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="bx bx-info-circle me-1"></i> Belum ada histori shift.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-center">
+                        {{ $historiShifts->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>

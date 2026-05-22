@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Gaji;
+use App\Models\Komisi;
 use App\Models\Pegawai;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -27,7 +28,23 @@ class GajiController extends Controller
 
         $gajis = $query->orderBy('periode_mulai', 'desc')->paginate(10);
 
-        return view('admin.gaji.index', compact('gajis', 'pegawais'));
+        $detailKomisiByGaji = $gajis->getCollection()
+            ->mapWithKeys(function (Gaji $gaji) {
+                $komisis = Komisi::with(['reservasi'])
+                    ->where('pegawai_id', $gaji->pegawai_id)
+                    ->whereHas('reservasi', function ($query) use ($gaji) {
+                        $query->whereBetween('tanggal', [
+                            Carbon::parse($gaji->periode_mulai)->toDateString(),
+                            Carbon::parse($gaji->periode_selesai)->toDateString(),
+                        ])->where('status', 'Selesai');
+                    })
+                    ->latest()
+                    ->get();
+
+                return [$gaji->gaji_id => $komisis];
+            });
+
+        return view('admin.gaji.index', compact('gajis', 'pegawais', 'detailKomisiByGaji'));
     }
 
     public function exportCsv(Request $request)

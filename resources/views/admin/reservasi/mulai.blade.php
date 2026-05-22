@@ -76,11 +76,12 @@
                             </select>
                             <small class="text-muted d-block mt-2">
                                 Pegawai yang sedang menjadi <strong>PJ</strong> di reservasi lain pada jam yang sama tidak bisa dipilih sebagai PJ.
-                                Jika sedang menjadi <strong>helper</strong>, pegawai tetap boleh dipilih sebagai PJ.
+                                {{-- Jika sedang menjadi <strong>helper</strong>, pegawai tetap boleh dipilih sebagai PJ. --}}
                             </small>
                         </div>
 
-                        {{-- Helper (tampil jika ada layanan Kelompok) --}}
+                        {{--
+                        Helper (tampil jika ada layanan Kelompok)
                         @php $adaKelompok = $layananList->contains(fn($l) => strtolower($l->kategori) === 'kelompok'); @endphp
                         <div id="helper_section" class="{{ $adaKelompok ? '' : 'd-none' }}">
                             <label class="form-label fw-semibold">Pegawai Helper</label>
@@ -88,6 +89,7 @@
                             </select>
                             <small class="text-muted">Opsional. Wajib jika ada layanan Kelompok. Pegawai yang sedang jadi PJ di reservasi lain tetap boleh dipilih sebagai helper.</small>
                         </div>
+                        --}}
 
                     </div>
                 </div>
@@ -172,7 +174,8 @@
                     // Populate PJ — tidak sedang PJ di tempat lain
                     pjData.forEach(function (p) {
                         const pjSel = String(currentPJ) === String(p.id) ? 'selected' : '';
-                        const pjNote = p.sudah_helper ? ' · juga helper di reservasi lain' : '';
+                        // const pjNote = p.sudah_helper ? ' · juga helper di reservasi lain' : '';
+                        const pjNote = '';
                         $('#pegawai_pj_id').append(`<option value="${p.id}" ${pjSel}>${p.nama} — ${p.shift}${pjNote}</option>`);
                     });
                     $('#pegawai_pj_id').trigger('change.select2');
@@ -188,9 +191,10 @@
                     });
                     $('#pegawai_helper_id').trigger('change.select2');
 
-                    const infoHelper = pjData.filter(p => p.sudah_helper).length > 0
-                        ? ` (${pjData.filter(p => p.sudah_helper).length} kandidat PJ sedang helper di reservasi lain)`
-                        : '';
+                    // const infoHelper = pjData.filter(p => p.sudah_helper).length > 0
+                    //     ? ` (${pjData.filter(p => p.sudah_helper).length} kandidat PJ sedang helper di reservasi lain)`
+                    //     : '';
+                    const infoHelper = '';
                     $('#pj-info')
                         .text(pjData.length + ' pegawai tersedia sebagai PJ di jam ' + jamWIB + '.' + infoHelper)
                         .addClass('text-success').removeClass('text-muted text-danger');

@@ -35,6 +35,11 @@ class Pegawai extends Model
         return $this->hasMany(JadwalShift::class);
     }
 
+    public function shiftHistories()
+    {
+        return $this->hasMany(PegawaiShiftHistory::class);
+    }
+
     /**
      * Ambil shift pegawai pada hari tertentu.
      * Jika hari tersebut tidak memiliki jadwal, anggap libur.

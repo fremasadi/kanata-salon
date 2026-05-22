@@ -10,9 +10,22 @@ use Illuminate\Support\Facades\Storage;
 
 class JenisLayananController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jenisLayanan = JenisLayanan::all();
+        $search = $request->input('search');
+
+        $jenisLayanan = JenisLayanan::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('kategori', 'like', "%{$search}%")
+                        ->orWhere('jenis', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return view('admin.jenis-layanan.index', compact('jenisLayanan'));
     }
 

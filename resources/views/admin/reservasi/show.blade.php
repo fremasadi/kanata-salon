@@ -281,8 +281,10 @@
                                         <strong>Belum ada pegawai PJ.</strong><br>
                                         <small>Klik <em>Assign Pegawai</em> untuk menentukan pegawai yang tersedia di jam
                                             ini.</small><br>
+                                        {{--
                                         <small>Pegawai yang sedang menjadi PJ di reservasi lain pada jam yang
                                             sama tidak bisa dipilih sebagai PJ, tetapi masih bisa dipilih sebagai helper.</small>
+                                        --}}
                                     </div>
                                 </div>
                             @elseif($reservasi->pegawaiPJ && !in_array($reservasi->status, ['Selesai', 'Batal']))
@@ -290,8 +292,10 @@
                                     <i class="bx bx-info-circle fs-5"></i>
                                     <div>
                                         <strong>Pegawai sudah ditetapkan untuk reservasi ini.</strong><br>
+                                        {{--
                                         <small>Selama reservasi ini belum <em>Selesai</em>, PJ yang dipilih tidak bisa
                                             menjadi PJ di reservasi lain pada jam yang sama, tetapi masih bisa menjadi helper.</small>
+                                        --}}
                                     </div>
                                 </div>
                             @endif
@@ -317,6 +321,7 @@
                                 <p class="text-muted fst-italic">Belum ditentukan</p>
                             @endif
 
+                            {{--
                             <p class="mb-2 text-muted small">Helper</p>
                             @if(count($helperList) > 0)
                                 @foreach($helperList as $helper)
@@ -339,6 +344,7 @@
                             @else
                                 <p class="text-muted">Tidak ada helper.</p>
                             @endif
+                            --}}
                         </div>
                     </div>
                 </div>

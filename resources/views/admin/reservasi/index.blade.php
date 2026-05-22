@@ -116,7 +116,7 @@
                             @php
                                 $sisa = max(0, $reservasi->total_harga - $reservasi->jumlah_pembayaran);
                                 $layanans = $reservasi->layananList();
-                                $helpers  = $reservasi->pegawaiHelpers();
+                                // $helpers  = $reservasi->pegawaiHelpers();
                             @endphp
                             <tr>
                                 {{-- No --}}
@@ -192,12 +192,14 @@
                                     @else
                                         <div class="small text-muted">Belum ada PJ</div>
                                     @endif
+                                    {{--
                                     @if($helpers->isNotEmpty())
                                         <div class="small text-muted mt-1">
                                             Helper:
                                             {{ $helpers->map(fn($h) => $h->user->name ?? '—')->implode(', ') }}
                                         </div>
                                     @endif
+                                    --}}
                                 </td>
 
                                 {{-- Aksi --}}
