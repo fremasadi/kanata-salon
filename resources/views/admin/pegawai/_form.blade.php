@@ -1,5 +1,12 @@
 <div class="card">
     <div class="card-body">
+        @php
+            $hariList = $hariList ?? ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+            $jadwalMap = $jadwalMap ?? [];
+            $selectedLayananIds = old('layanan_id', $pegawai->layanan_id ?? []);
+            $mingguMulai = old('minggu_mulai', now()->startOfWeek(\Carbon\Carbon::MONDAY)->toDateString());
+        @endphp
+
         {{-- Error Validation --}}
         @if ($errors->any())
             <div class="alert alert-danger alert-dismissible" role="alert">
@@ -25,7 +32,6 @@
             </div>
 
             {{-- Layanan --}}
-            @php $selectedLayananIds = old('layanan_id', $pegawai->layanan_id ?? []); @endphp
             <div class="col-md-12">
                 <label for="layanan_id" class="form-label">Layanan yang Dikuasai</label>
                 <select name="layanan_id[]" id="layanan_id"
@@ -43,13 +49,28 @@
 
             {{-- Jadwal Shift Mingguan --}}
             <div class="col-md-12">
-                <label class="form-label fw-semibold">Jadwal Shift Mingguan</label>
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-end mb-2">
+                    <div>
+                        <label class="form-label fw-semibold mb-1">Jadwal Shift Mingguan</label>
+                        <div class="small text-muted">Tanggal histori mengikuti minggu yang dipilih.</div>
+                    </div>
+                    <div style="min-width: 220px;">
+                        <label for="minggu_mulai" class="form-label small mb-1">Minggu Jadwal</label>
+                        <input type="date" name="minggu_mulai" id="minggu_mulai"
+                            value="{{ $mingguMulai }}"
+                            class="form-control form-control-sm @error('minggu_mulai') is-invalid @enderror">
+                        @error('minggu_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 @foreach($hariList as $hari)
-                                    <th class="text-center text-capitalize">{{ $hari }}</th>
+                                    <th class="text-center text-capitalize">
+                                        <div>{{ $hari }}</div>
+                                        <small class="text-muted fw-normal shift-date-label" data-hari="{{ $hari }}"></small>
+                                    </th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -99,6 +120,47 @@ $(document).ready(function() {
         allowClear: true,
         width: '100%'
     });
+
+    const hariOffsets = {
+        senin: 0,
+        selasa: 1,
+        rabu: 2,
+        kamis: 3,
+        jumat: 4,
+        sabtu: 5,
+        minggu: 6
+    };
+
+    const formatTanggal = function(date) {
+        return date.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
+    const updateTanggalJadwal = function() {
+        const mingguMulaiValue = $('#minggu_mulai').val();
+        if (!mingguMulaiValue) {
+            $('.shift-date-label').text('');
+            return;
+        }
+
+        const awalMinggu = new Date(`${mingguMulaiValue}T00:00:00`);
+        const day = awalMinggu.getDay();
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        awalMinggu.setDate(awalMinggu.getDate() + mondayOffset);
+
+        $('.shift-date-label').each(function() {
+            const hari = $(this).data('hari');
+            const tanggal = new Date(awalMinggu);
+            tanggal.setDate(awalMinggu.getDate() + hariOffsets[hari]);
+            $(this).text(formatTanggal(tanggal));
+        });
+    };
+
+    $('#minggu_mulai').on('change', updateTanggalJadwal);
+    updateTanggalJadwal();
 });
 </script>
 @endpush

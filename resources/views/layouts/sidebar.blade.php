@@ -46,6 +46,14 @@
                 </a>
             </li>
 
+            {{-- Histori Shift Pegawai --}}
+            <li class="menu-item {{ request()->routeIs('admin.histori-shift.*') || request()->routeIs('admin.pegawai.histori-shift') ? 'active' : '' }}">
+                <a href="{{ route('admin.histori-shift.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i>
+                    <div>Histori Shift</div>
+                </a>
+            </li>
+
             {{-- Shift --}}
             <li class="menu-item {{ request()->routeIs('admin.shift.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.shift.index') }}" class="menu-link">

@@ -59,6 +59,10 @@
                                           class="btn btn-sm btn-warning">
                                         <i class="bx bx-edit"></i> Edit
                                         </a>
+                                        <a href="{{ route('admin.pegawai.histori-shift', $pegawai->id) }}"
+                                           class="btn btn-sm btn-info">
+                                            <i class="bx bx-history"></i> Histori
+                                        </a>
                                         <form action="{{ route('admin.pegawai.destroy', $pegawai->id) }}"
                                               method="POST"
                                               onsubmit="return confirm('Yakin ingin force delete akun pegawai ini? Data pegawai, akun login, jadwal, histori shift, gaji, dan reservasi terkait bisa ikut terhapus permanen.')"

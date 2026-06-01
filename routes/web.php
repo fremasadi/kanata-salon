@@ -25,6 +25,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('jenis', JenisController::class)->names('jenis')->parameters(['jenis' => 'jenis']);
         Route::resource('jenis-layanan', JenisLayananController::class)->names('jenis-layanan');
         Route::resource('shift', ShiftController::class)->names('shift');
+        Route::get('histori-shift', [PegawaiController::class, 'historiShiftIndex'])
+            ->name('histori-shift.index');
+        Route::get('pegawai/{pegawai}/histori-shift', [PegawaiController::class, 'historiShift'])
+            ->name('pegawai.histori-shift');
         Route::resource('pegawai', PegawaiController::class);
         Route::get('pembayaran', [\App\Http\Controllers\Admin\PembayaranController::class, 'index'])->name('pembayaran.index');
         Route::resource('komisi', \App\Http\Controllers\Admin\KomisiController::class)->only(['index']);
