@@ -31,6 +31,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('pegawai.histori-shift');
         Route::resource('pegawai', PegawaiController::class);
         Route::get('pembayaran', [\App\Http\Controllers\Admin\PembayaranController::class, 'index'])->name('pembayaran.index');
+        Route::get('pembayaran/export-csv', [\App\Http\Controllers\Admin\PembayaranController::class, 'exportCsv'])->name('pembayaran.export-csv');
+        Route::get('pembayaran/print', [\App\Http\Controllers\Admin\PembayaranController::class, 'printView'])->name('pembayaran.print');
         Route::resource('komisi', \App\Http\Controllers\Admin\KomisiController::class)->only(['index']);
         Route::get('komisi/export-csv', [\App\Http\Controllers\Admin\KomisiController::class, 'exportCsv'])->name('komisi.export-csv');
         Route::get('komisi/print', [\App\Http\Controllers\Admin\KomisiController::class, 'printView'])->name('komisi.print');

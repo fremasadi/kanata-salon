@@ -113,12 +113,12 @@
             </li>
 
             {{-- Laporan Keuangan --}}
-            <li class="menu-item {{ request()->routeIs('admin.laporan-keuangan.*') ? 'active' : '' }}">
+            <!-- <li class="menu-item {{ request()->routeIs('admin.laporan-keuangan.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.laporan-keuangan.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-line-chart"></i>
                     <div>Laporan Keuangan</div>
                 </a>
-            </li>
+            </li> -->
 
 
             {{-- Pengaturan --}}

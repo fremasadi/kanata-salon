@@ -2,9 +2,17 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Daftar Pembayaran</h4>
-            <div class="text-muted small">
-                Total Settled:
-                <strong class="text-success">Rp {{ number_format($totalSettled, 0, ',', '.') }}</strong>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('admin.pembayaran.export-csv', request()->query()) }}" class="btn btn-sm btn-success">
+                    <i class="bx bx-spreadsheet"></i> Excel
+                </a>
+                <a href="{{ route('admin.pembayaran.print', request()->query()) }}" target="_blank" class="btn btn-sm btn-danger">
+                    <i class="bx bx-file"></i> PDF
+                </a>
+                <div class="text-muted small ms-2">
+                    Total Settled:
+                    <strong class="text-success">Rp {{ number_format($totalSettled, 0, ',', '.') }}</strong>
+                </div>
             </div>
         </div>
 
@@ -144,7 +152,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
+                            <td colspan="9" class="text-center text-muted py-4">
                                 <i class="bx bx-info-circle me-1"></i> Tidak ada data pembayaran.
                             </td>
                         </tr>
