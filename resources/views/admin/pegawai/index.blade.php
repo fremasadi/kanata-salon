@@ -4,7 +4,9 @@
             <h5 class="mb-0">
                 <i class="bx bx-id-card me-2"></i> Manajemen Pegawai
             </h5>
-
+            <a href="{{ route('admin.pegawai.create') }}" class="btn btn-primary btn-sm">
+                <i class="bx bx-user-plus"></i> Tambah Pegawai
+            </a>
         </div>
 
         <div class="card-body">
