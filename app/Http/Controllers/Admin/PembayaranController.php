@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pembayaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PembayaranController extends Controller
@@ -79,7 +80,11 @@ class PembayaranController extends Controller
             ->whereIn('transaction_status', ['settlement', 'capture'])
             ->sum('gross_amount');
 
-        return view('admin.pembayaran.print', compact('pembayarans', 'totalSettled'));
+        $filename = 'laporan_pembayaran_' . now()->format('Ymd_His') . '.pdf';
+        $pdf = Pdf::loadView('admin.pembayaran.print', compact('pembayarans', 'totalSettled'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download($filename);
     }
 
     private function filteredQuery(Request $request)

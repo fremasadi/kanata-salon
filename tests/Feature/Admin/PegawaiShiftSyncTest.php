@@ -2,6 +2,7 @@
 
 use App\Models\JadwalShift;
 use App\Models\Pegawai;
+use App\Models\PegawaiShiftHistory;
 use App\Models\Shift;
 use App\Models\ShiftHistory;
 use App\Models\User;
@@ -37,7 +38,8 @@ test('admin dapat menyimpan pegawai beserta jadwal dan histori shift mingguan', 
     $pegawai = Pegawai::whereHas('user', fn ($query) => $query->where('email', 'pegawai-baru@example.com'))->firstOrFail();
 
     expect(JadwalShift::where('pegawai_id', $pegawai->id)->count())->toBe(1)
-        ->and(ShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7);
+        ->and(ShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7)
+        ->and(PegawaiShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7);
 
     $this->assertDatabaseHas('pegawai_jadwal_shift', [
         'pegawai_id' => $pegawai->id,
@@ -92,6 +94,7 @@ test('admin dapat mengedit jadwal dan menyinkronkan histori pada minggu lain', f
     ]);
 
     expect(ShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7);
+    expect(PegawaiShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7);
 
     $this->assertDatabaseHas('shift_histories', [
         'pegawai_id' => $pegawai->id,

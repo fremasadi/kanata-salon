@@ -58,6 +58,9 @@
                     <h6 class="mb-3">
                         <i class="bx bx-history me-1"></i> Histori Shift
                     </h6>
+                    <div class="text-muted small mb-3">
+                        Data ini mengikuti jadwal yang terakhir disimpan admin untuk minggu terkait.
+                    </div>
 
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -73,7 +76,7 @@
                             <tbody>
                                 @forelse($historiShifts as $histori)
                                     <tr>
-                                        <td>{{ $histori->tanggal->format('d/m/Y') }}</td>
+                                        <td>{{ $histori->tanggal?->format('d/m/Y') ?? '-' }}</td>
                                         <td class="text-capitalize">{{ $histori->hari }}</td>
                                         <td>
                                             @if($histori->shift)

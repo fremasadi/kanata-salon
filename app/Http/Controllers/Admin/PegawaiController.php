@@ -169,10 +169,6 @@ class PegawaiController extends Controller
             $shiftLamaId = $jadwalLama?->shift_id;
             $shiftBaruId = $shiftId ? (int) $shiftId : null;
 
-            if ($shiftLamaId !== $shiftBaruId) {
-                $this->logPerubahanShift($pegawai, $hari, $shiftBaruId, $mingguMulai);
-            }
-
             if ($shiftId) {
                 JadwalShift::updateOrCreate(
                     ['pegawai_id' => $pegawai->id, 'hari' => $hari],
@@ -184,33 +180,48 @@ class PegawaiController extends Controller
                     ->delete();
             }
 
-            $this->syncHistoriShift($pegawai, $hari, $shiftBaruId, $mingguMulai);
+            $this->syncHistoriShift(
+                $pegawai,
+                $hari,
+                $shiftBaruId,
+                $mingguMulai,
+                $shiftLamaId !== $shiftBaruId
+            );
         }
     }
 
-    private function logPerubahanShift(Pegawai $pegawai, string $hari, ?int $shiftId, ?string $mingguMulai = null): void
-    {
+    private function syncHistoriShift(
+        Pegawai $pegawai,
+        string $hari,
+        ?int $shiftId,
+        ?string $mingguMulai = null,
+        bool $berubah = false
+    ): void {
         $tanggal = $this->tanggalUntukHariDalamMinggu($hari, $mingguMulai);
+        $keterangan = $berubah
+            ? ($shiftId ? 'Shift diperbarui' : 'Libur / Off shift')
+            : ($shiftId ? 'Shift disinkronkan' : 'Libur / Off shift');
 
-        PegawaiShiftHistory::create([
-            'pegawai_id' => $pegawai->id,
-            'shift_id' => $shiftId,
-            'tanggal' => $tanggal,
-            'hari' => $hari,
-            'keterangan' => $shiftId ? 'Shift diperbarui' : 'Libur / Off shift',
-        ]);
-    }
-
-    private function syncHistoriShift(Pegawai $pegawai, string $hari, ?int $shiftId, ?string $mingguMulai = null): void
-    {
         ShiftHistory::updateOrCreate(
             [
                 'pegawai_id' => $pegawai->id,
-                'tanggal' => $this->tanggalUntukHariDalamMinggu($hari, $mingguMulai),
+                'tanggal' => $tanggal,
             ],
             [
                 'shift_id' => $shiftId,
                 'hari' => $hari,
+            ]
+        );
+
+        PegawaiShiftHistory::updateOrCreate(
+            [
+                'pegawai_id' => $pegawai->id,
+                'tanggal' => $tanggal,
+            ],
+            [
+                'shift_id' => $shiftId,
+                'hari' => $hari,
+                'keterangan' => $keterangan,
             ]
         );
     }

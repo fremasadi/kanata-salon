@@ -6,7 +6,7 @@
                 <a href="{{ route('admin.pembayaran.export-csv', request()->query()) }}" class="btn btn-sm btn-success">
                     <i class="bx bx-spreadsheet"></i> Excel
                 </a>
-                <a href="{{ route('admin.pembayaran.print', request()->query()) }}" target="_blank" class="btn btn-sm btn-danger">
+                <a href="{{ route('admin.pembayaran.print', request()->query()) }}" class="btn btn-sm btn-danger">
                     <i class="bx bx-file"></i> PDF
                 </a>
                 <div class="text-muted small ms-2">

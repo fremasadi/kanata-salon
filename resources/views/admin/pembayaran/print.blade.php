@@ -21,24 +21,10 @@
         .badge-warning { background: #ffab00; color: #222; }
         .badge-danger { background: #ff3e1d; }
         .badge-secondary { background: #8592a3; }
-        .print-btn { margin-bottom: 16px; }
-        @media print {
-            body { padding: 12px; }
-            .print-btn { display: none; }
-            @page { size: landscape; margin: 12mm; }
-        }
+        @page { margin: 12mm; }
     </style>
 </head>
 <body>
-    <div class="print-btn">
-        <button onclick="window.print()" style="padding:6px 18px;background:#e30083;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">
-            Cetak / Simpan PDF
-        </button>
-        <button onclick="window.close()" style="padding:6px 18px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;margin-left:8px;">
-            Tutup
-        </button>
-    </div>
-
     <h2>Laporan Pembayaran</h2>
     <p class="subtitle">Kanata Salon &mdash; Dicetak: {{ now()->translatedFormat('d F Y H:i') }}</p>
 
