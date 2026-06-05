@@ -121,6 +121,7 @@ class PegawaiController extends Controller
     public function update(Request $request, Pegawai $pegawai)
     {
         $validated = $request->validate([
+            'name' => 'required|string|max:100',
             'kontak' => 'nullable|string|max:20',
             'layanan_id' => 'nullable|array',
             'layanan_id.*' => 'exists:jenis_layanans,id',
@@ -130,6 +131,10 @@ class PegawaiController extends Controller
         ]);
 
         DB::transaction(function () use ($pegawai, $validated) {
+            $pegawai->user?->update([
+                'name' => $validated['name'],
+            ]);
+
             $pegawai->update([
                 'layanan_id' => $validated['layanan_id'] ?? [],
                 'kontak' => $validated['kontak'] ?? null,

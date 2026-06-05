@@ -79,6 +79,7 @@ test('admin dapat mengedit jadwal dan menyinkronkan histori pada minggu lain', f
     ]);
 
     $response = $this->actingAs($admin)->put(route('admin.pegawai.update', $pegawai), [
+        'name' => 'Nama Pegawai Diubah',
         'minggu_mulai' => '2026-06-08',
         'jadwal' => [
             'senin' => $shiftSiang->id,
@@ -86,6 +87,9 @@ test('admin dapat mengedit jadwal dan menyinkronkan histori pada minggu lain', f
     ]);
 
     $response->assertRedirect(route('admin.pegawai.index'));
+    $pegawai->refresh();
+
+    expect($pegawai->user->name)->toBe('Nama Pegawai Diubah');
 
     $this->assertDatabaseHas('pegawai_jadwal_shift', [
         'pegawai_id' => $pegawai->id,

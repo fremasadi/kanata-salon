@@ -21,16 +21,16 @@
         @endif
 
         <div class="row g-3">
-            @if(!isset($pegawai))
-                <div class="col-md-6">
-                    <label for="name" class="form-label">Nama Lengkap</label>
-                    <input type="text" name="name" id="name"
-                        value="{{ old('name') }}"
-                        class="form-control @error('name') is-invalid @enderror"
-                        placeholder="Masukkan nama lengkap" required>
-                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
+            <div class="col-md-6">
+                <label for="name" class="form-label">Nama Lengkap</label>
+                <input type="text" name="name" id="name"
+                    value="{{ old('name', $pegawai->user->name ?? '') }}"
+                    class="form-control @error('name') is-invalid @enderror"
+                    placeholder="Masukkan nama lengkap" required>
+                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
 
+            @if(!isset($pegawai))
                 <div class="col-md-6">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" name="email" id="email"
