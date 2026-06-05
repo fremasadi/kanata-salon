@@ -20,7 +20,15 @@
         <div class="card mb-0">
             <div class="card-body pb-2">
                 <form method="GET" action="{{ route('admin.pembayaran.index') }}" class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Tanggal Dari</label>
+                        <input type="date" name="tanggal_dari" class="form-control" value="{{ request('tanggal_dari') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tanggal Sampai</label>
+                        <input type="date" name="tanggal_sampai" class="form-control" value="{{ request('tanggal_sampai') }}">
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
                             <option value="">-- Semua --</option>
@@ -60,14 +68,6 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Tanggal Dari</label>
-                        <input type="date" name="tanggal_dari" class="form-control" value="{{ request('tanggal_dari') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Tanggal Sampai</label>
-                        <input type="date" name="tanggal_sampai" class="form-control" value="{{ request('tanggal_sampai') }}">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label d-block">&nbsp;</label>
