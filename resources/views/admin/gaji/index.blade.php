@@ -300,7 +300,7 @@
                                     <select name="status" class="form-select">
                                         <option value="Draft" {{ $gaji->status == 'Draft' ? 'selected' : '' }}>Draft</option>
                                         <option value="Dibayar" {{ $gaji->status == 'Dibayar' ? 'selected' : '' }}>Dibayar</option>
-                                        <option value="Ditunda" {{ $gaji->status == 'Ditunda' ? 'selected' : '' }}>Ditunda</option>
+                                        <!-- <option value="Ditunda" {{ $gaji->status == 'Ditunda' ? 'selected' : '' }}>Ditunda</option> -->
                                     </select>
                                 </div>
 
