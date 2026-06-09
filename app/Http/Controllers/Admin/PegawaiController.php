@@ -165,6 +165,10 @@ class PegawaiController extends Controller
         $hariList = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
 
         foreach ($hariList as $hari) {
+            if ($this->tanggalShiftSudahLewat($hari, $mingguMulai)) {
+                continue;
+            }
+
             $shiftId = $jadwal[$hari] ?? null;
 
             $jadwalLama = JadwalShift::where('pegawai_id', $pegawai->id)
@@ -248,5 +252,11 @@ class PegawaiController extends Controller
             : now()->startOfWeek(Carbon::MONDAY);
 
         return $awalMinggu->copy()->addDays($offsetHari)->toDateString();
+    }
+
+    private function tanggalShiftSudahLewat(string $hari, ?string $mingguMulai = null): bool
+    {
+        return Carbon::parse($this->tanggalUntukHariDalamMinggu($hari, $mingguMulai))
+            ->lt(Carbon::today());
     }
 }

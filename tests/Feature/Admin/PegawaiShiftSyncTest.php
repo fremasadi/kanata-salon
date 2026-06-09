@@ -6,6 +6,7 @@ use App\Models\PegawaiShiftHistory;
 use App\Models\Shift;
 use App\Models\ShiftHistory;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -16,6 +17,8 @@ function adminUserForPegawaiShiftTest(): User
 }
 
 test('admin dapat menyimpan pegawai beserta jadwal dan histori shift mingguan', function () {
+    Carbon::setTestNow('2026-05-25 08:00:00');
+
     $shift = Shift::create([
         'nama' => 'Pagi',
         'waktu_mulai' => '08:00',
@@ -56,6 +59,8 @@ test('admin dapat menyimpan pegawai beserta jadwal dan histori shift mingguan', 
 });
 
 test('admin dapat mengedit jadwal dan menyinkronkan histori pada minggu lain', function () {
+    Carbon::setTestNow('2026-06-02 08:00:00');
+
     $admin = adminUserForPegawaiShiftTest();
     $pegawai = Pegawai::create([
         'user_id' => User::factory()->create(['role' => 'pegawai'])->id,
@@ -101,6 +106,62 @@ test('admin dapat mengedit jadwal dan menyinkronkan histori pada minggu lain', f
     expect(PegawaiShiftHistory::where('pegawai_id', $pegawai->id)->count())->toBe(7);
 
     $this->assertDatabaseHas('shift_histories', [
+        'pegawai_id' => $pegawai->id,
+        'tanggal' => '2026-06-08',
+        'hari' => 'senin',
+        'shift_id' => $shiftSiang->id,
+    ]);
+});
+
+test('admin tidak dapat mengubah shift untuk tanggal yang sudah lewat', function () {
+    Carbon::setTestNow('2026-06-09 08:00:00');
+
+    $admin = adminUserForPegawaiShiftTest();
+    $pegawai = Pegawai::create([
+        'user_id' => User::factory()->create(['role' => 'pegawai'])->id,
+        'layanan_id' => [],
+    ]);
+    $shiftPagi = Shift::create([
+        'nama' => 'Pagi',
+        'waktu_mulai' => '08:00',
+        'waktu_selesai' => '16:00',
+    ]);
+    $shiftSiang = Shift::create([
+        'nama' => 'Siang',
+        'waktu_mulai' => '12:00',
+        'waktu_selesai' => '20:00',
+    ]);
+
+    JadwalShift::create([
+        'pegawai_id' => $pegawai->id,
+        'hari' => 'senin',
+        'shift_id' => $shiftPagi->id,
+    ]);
+
+    $response = $this->actingAs($admin)->put(route('admin.pegawai.update', $pegawai), [
+        'name' => 'Nama Tetap',
+        'minggu_mulai' => '2026-06-08',
+        'jadwal' => [
+            'senin' => $shiftSiang->id,
+            'selasa' => $shiftSiang->id,
+        ],
+    ]);
+
+    $response->assertRedirect(route('admin.pegawai.index'));
+
+    $this->assertDatabaseHas('pegawai_jadwal_shift', [
+        'pegawai_id' => $pegawai->id,
+        'hari' => 'senin',
+        'shift_id' => $shiftPagi->id,
+    ]);
+
+    $this->assertDatabaseHas('pegawai_jadwal_shift', [
+        'pegawai_id' => $pegawai->id,
+        'hari' => 'selasa',
+        'shift_id' => $shiftSiang->id,
+    ]);
+
+    $this->assertDatabaseMissing('shift_histories', [
         'pegawai_id' => $pegawai->id,
         'tanggal' => '2026-06-08',
         'hari' => 'senin',

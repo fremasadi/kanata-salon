@@ -80,7 +80,7 @@
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-end mb-2">
                     <div>
                         <label class="form-label fw-semibold mb-1">Jadwal Shift Mingguan</label>
-                        <div class="small text-muted">Tanggal histori mengikuti minggu yang dipilih.</div>
+                        <div class="small text-muted">Tanggal histori mengikuti minggu yang dipilih. Tanggal yang sudah lewat tidak bisa diedit.</div>
                     </div>
                     <div style="min-width: 220px;">
                         <label for="minggu_mulai" class="form-label small mb-1">Minggu Jadwal</label>
@@ -109,7 +109,7 @@
                                         $selectedShift = old("jadwal.$hari", $jadwalMap[$hari] ?? null);
                                     @endphp
                                     <td>
-                                        <select name="jadwal[{{ $hari }}]" class="form-select form-select-sm">
+                                        <select name="jadwal[{{ $hari }}]" class="form-select form-select-sm shift-select" data-hari="{{ $hari }}">
                                             <option value="">— Off —</option>
                                             @foreach($shifts as $shift)
                                                 <option value="{{ $shift->id }}"
@@ -171,6 +171,7 @@ $(document).ready(function() {
         const mingguMulaiValue = $('#minggu_mulai').val();
         if (!mingguMulaiValue) {
             $('.shift-date-label').text('');
+            $('.shift-select').prop('disabled', false).removeClass('bg-light');
             return;
         }
 
@@ -179,11 +180,21 @@ $(document).ready(function() {
         const mondayOffset = day === 0 ? -6 : 1 - day;
         awalMinggu.setDate(awalMinggu.getDate() + mondayOffset);
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         $('.shift-date-label').each(function() {
             const hari = $(this).data('hari');
             const tanggal = new Date(awalMinggu);
             tanggal.setDate(awalMinggu.getDate() + hariOffsets[hari]);
-            $(this).text(formatTanggal(tanggal));
+            tanggal.setHours(0, 0, 0, 0);
+
+            const sudahLewat = tanggal < today;
+            $(this).text(formatTanggal(tanggal) + (sudahLewat ? ' - terkunci' : ''));
+
+            const select = $(`.shift-select[data-hari="${hari}"]`);
+            select.prop('disabled', sudahLewat);
+            select.toggleClass('bg-light', sudahLewat);
         });
     };
 
